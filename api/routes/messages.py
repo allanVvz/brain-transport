@@ -7,7 +7,6 @@ from fastapi import APIRouter, Header, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from services import (
-    agents_service,
     auth_service,
     event_emitter,
     lead_qualification,
@@ -106,15 +105,7 @@ def send_message(body: SendMessageBody, request: Request) -> dict:
 
     agent: dict | None = None
     if body.agent_id:
-        agent = agents_service.get_agent(body.agent_id)
-        if not agent or agent.get("persona_id") != persona_id:
-            raise HTTPException(403, detail="Agente nao pertence a persona do lead.")
-    else:
-        stage = lead.get("stage") or lead.get("funnel_stage") or "novo"
-        try:
-            agent, _role = agents_service.resolve_for_stage(persona_id, stage)
-        except Exception as exc:
-            logger.warning("resolve_for_stage failed in send: %s", exc)
+        agent = operator_messaging.agent_metadata(body.agent_id, persona_id)
 
     client_message_id = str(body.client_message_id)
     message_id = f"manual:{client_message_id}"
@@ -127,7 +118,7 @@ def send_message(body: SendMessageBody, request: Request) -> dict:
             correlation_id=message_id,
             idempotency_key=message_id,
             metadata={
-                "agent_id": agent.get("id") if agent else None,
+                "agent_id": agent.get("agent_id") if agent else None,
                 "bot_name": agent.get("bot_name") if agent else None,
                 "sender_id": body.sender_id,
                 "nome": body.nome or body.sender_id or "Operador",

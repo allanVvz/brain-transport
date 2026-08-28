@@ -9,6 +9,21 @@ from fastapi import HTTPException
 from services import event_emitter, supabase_client, whatsapp_outbox
 
 
+def agent_metadata(agent_id: str, persona_id: str) -> dict:
+    result = (
+        supabase_client.get_client()
+        .table("agents")
+        .select("id,persona_id,bot_name")
+        .eq("id", agent_id)
+        .maybe_single()
+        .execute()
+    )
+    agent = getattr(result, "data", None) or {}
+    if not agent or str(agent.get("persona_id")) != str(persona_id):
+        raise HTTPException(403, "Agente nao pertence a persona do lead")
+    return {"agent_id": agent.get("id"), "bot_name": agent.get("bot_name")}
+
+
 def enqueue(
     *,
     lead_ref: int,
