@@ -1,4 +1,4 @@
-﻿from services import supabase_client
+from services import supabase_client
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -25,9 +25,9 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
                 "persona_id": persona_id,
                 "severity": "critical" if rate > 0.15 else "warning",
                 "category": "business",
-                "title": f"{len(unanswered_leads)} conversa(s) sem resposta da IA nas Ãºltimas 24h",
-                "description": f"{rate:.1%} das conversas ativas nÃ£o receberam resposta.",
-                "recommendation": "Verificar se o fluxo n8n estÃ¡ processando todas as mensagens. Verificar logs de erro.",
+                "title": f"{len(unanswered_leads)} conversa(s) sem resposta da IA nas últimas 24h",
+                "description": f"{rate:.1%} das conversas ativas não receberam resposta.",
+                "recommendation": "Verificar se o fluxo n8n está processando todas as mensagens. Verificar logs de erro.",
                 "affected_component": "SDR/Closer Agents",
                 "score_impact": -12,
             })
@@ -43,9 +43,9 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
                     "persona_id": persona_id,
                     "severity": "warning",
                     "category": "performance",
-                    "title": f"LatÃªncia mÃ©dia dos agentes: {avg_ms/1000:.1f}s",
-                    "description": "Lead espera mais de 10s por resposta. Impacta experiÃªncia.",
-                    "recommendation": "Usar modelos mais rÃ¡pidos (Haiku) para SDR. Reservar Sonnet para Closer.",
+                    "title": f"Latência média dos agentes: {avg_ms/1000:.1f}s",
+                    "description": "Lead espera mais de 10s por resposta. Impacta experiência.",
+                    "recommendation": "Usar modelos mais rápidos (Haiku) para SDR. Reservar Sonnet para Closer.",
                     "affected_component": "SDR/Closer Agent latency",
                     "score_impact": -8,
                 })
@@ -61,11 +61,10 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
             "severity": "info",
             "category": "business",
             "title": "Menos de 5% das conversas chegam ao Closer",
-            "description": f"SDR: {sdr_count}, Closer: {closer_count}. Baixa taxa de avanÃ§o para fechamento.",
-            "recommendation": "Revisar critÃ©rios de roteamento SDR â†’ Closer no decision_engine.",
+            "description": f"SDR: {sdr_count}, Closer: {closer_count}. Baixa taxa de avanço para fechamento.",
+            "recommendation": "Revisar critérios de roteamento SDR → Closer no decision_engine.",
             "affected_component": "decision_engine / routing",
             "score_impact": -5,
         })
 
     return insights
-

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import sys
@@ -119,4 +119,3 @@ if __name__ == "__main__":
         raise SystemExit(2)
     doc_id = sys.argv[1]
     print(json.dumps(validate_document_id(doc_id), ensure_ascii=False))
-

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import re
@@ -260,7 +260,7 @@ def _extract_shopify_product_cards(html: str, final_url: str) -> list[dict[str, 
 
 def _extract_text_product_candidates(text_blocks: list[str]) -> list[dict[str, Any]]:
     candidates: list[dict[str, Any]] = []
-    product_re = re.compile(r"\b(kit|modal|tricot|cropped|blusa|conjunto|cal[cÃ§]a|vestido|body)\b", re.I)
+    product_re = re.compile(r"\b(kit|modal|tricot|cropped|blusa|conjunto|cal[cç]a|vestido|body)\b", re.I)
     price_re = re.compile(r"(?:R\$\s*)?\d{1,3}(?:[.,]\d{2})")
     color_re = re.compile(
         r"\b(preto|branco|off white|bege|nude|vermelho|vinho|azul|marinho|verde|rosa|cinza|caramelo|chocolate)\b",
@@ -341,7 +341,7 @@ def crawl_catalog_url_tool(url: str, *, timeout: float = 12.0, limit: int = 30) 
     importacao usa um limite alto para listar o catalogo inteiro."""
     stages = [
         {"key": "fetch", "label": "captura bruta da URL", "status": "pending"},
-        {"key": "shopify", "label": "detecÃ§ao de API Shopify", "status": "pending"},
+        {"key": "shopify", "label": "detecçao de API Shopify", "status": "pending"},
         {"key": "parse", "label": "parsing HTML/texto", "status": "pending"},
         {"key": "extract", "label": "candidatos de produtos", "status": "pending"},
         {"key": "score", "label": "score de confianca", "status": "pending"},
@@ -436,4 +436,3 @@ def crawl_catalog_url_tool(url: str, *, timeout: float = 12.0, limit: int = 30) 
 def crawl_catalog_url(url: str, *, timeout: float = 12.0, limit: int = 30) -> dict[str, Any]:
     """Wrapper para manter compatibilidade com chamadas existentes."""
     return crawl_catalog_url_tool(url, timeout=timeout, limit=limit)
-

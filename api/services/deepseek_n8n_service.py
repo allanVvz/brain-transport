@@ -1,4 +1,4 @@
-﻿"""Provision a persona-scoped DeepSeek credential and canonical n8n workflow."""
+"""Provision a persona-scoped DeepSeek credential and canonical n8n workflow."""
 from __future__ import annotations
 
 import hashlib
@@ -158,7 +158,7 @@ def provision(
 ) -> dict[str, Any]:
     previous = dict(previous_config or {})
     slug = str(persona.get("slug") or "")
-    credential_name = f"Brain DeepSeek â€” {slug}"
+    credential_name = f"Brain DeepSeek — {slug}"
     step = "create_credential"
     credential_id = ""
     _emit(persona, "n8n.workflow_provision.started")
@@ -266,22 +266,22 @@ def resync_workflow_for_persona(
     activate_workflow: bool = True,
 ) -> dict[str, Any]:
     """Rebuild this persona's n8n workflow from the current template/graph
-    and publish it, reusing the DeepSeek credential already provisioned â€”
+    and publish it, reusing the DeepSeek credential already provisioned —
     creating the workflow if it doesn't exist yet.
 
     Called whenever the operator switches (or re-confirms) n8n_agents mode
     from the settings UI, so the live n8n workflow always matches what's on
-    disk without a manual SSH resync â€” the same steps that were previously
+    disk without a manual SSH resync — the same steps that were previously
     run by hand for every persona-level change.
 
     The credential is only ever reused, never recreated: once a DeepSeek
     key is saved, its raw value isn't retrievable from our own storage
     again (the only place it still lives is inside the n8n credential
-    object itself), so a genuinely first-time setup â€” no credential at all
-    â€” still requires the operator to (re)enter the key in Ferramentas. But
+    object itself), so a genuinely first-time setup — no credential at all
+    — still requires the operator to (re)enter the key in Ferramentas. But
     a persona that already has a credential and simply never got (or lost)
-    its workflow â€” the exact gap that made switching to n8n error out
-    instead of just working â€” gets one built here from the template, no
+    its workflow — the exact gap that made switching to n8n error out
+    instead of just working — gets one built here from the template, no
     key re-entry needed.
 
     Returns the config dict with n8n_workflow_id (and conversation_webhook_
@@ -291,7 +291,7 @@ def resync_workflow_for_persona(
     credential_id = str(deepseek_config.get("n8n_credential_id") or "")
     if not credential_id:
         raise RuntimeError("DeepSeek nao provisionado para esta persona")
-    credential_name = f"Brain DeepSeek â€” {persona.get('slug') or ''}"
+    credential_name = f"Brain DeepSeek — {persona.get('slug') or ''}"
     step = "render_template"
     workflow_id = str(deepseek_config.get("n8n_workflow_id") or "")
     _emit(
@@ -369,14 +369,14 @@ def check_workflow_wiring(deepseek_config: dict[str, Any]) -> dict[str, Any]:
     This is the strongest check available without either exposing the raw
     DeepSeek key or triggering a live execution: n8n's public API has no
     read endpoint for credentials themselves (GET by id and list both
-    return 405 â€” deliberately, credentials are write-only over the API).
+    return 405 — deliberately, credentials are write-only over the API).
     So a workflow node can keep referencing a credential id that was
-    deleted elsewhere in n8n and this check will still report "ok" â€” it
+    deleted elsewhere in n8n and this check will still report "ok" — it
     only catches the workflow being deleted or the node's own credential
     reference having drifted from what we have stored. Confirmed live
     2026-08-02: this exact class of failure (credential silently gone,
     node reference unchanged) only surfaced by actually triggering the
-    workflow and reading n8n's execution error â€” there is no safe way to
+    workflow and reading n8n's execution error — there is no safe way to
     detect it proactively without that side effect.
     """
     workflow_id = str(deepseek_config.get("n8n_workflow_id") or "")
@@ -510,4 +510,3 @@ def revoke(config: dict[str, Any] | None) -> None:
     credential_id = str((config or {}).get("n8n_credential_id") or "")
     if credential_id:
         n8n_client.delete_credential(credential_id)
-

@@ -1,4 +1,4 @@
-﻿"""Atomic-ish canonical Graph JSON publication over existing system_events.
+"""Atomic-ish canonical Graph JSON publication over existing system_events.
 
 The published event is deliberately written *after* mandatory projections
 complete.  Projection writes are idempotent, so a failed attempt can safely be
@@ -612,4 +612,3 @@ def apply_sofia_patch(graph: GraphJson, patch: dict[str, Any]) -> GraphJson:
     next_graph.nodes = list(nodes.values())
     next_graph.edges = list(edges.values())
     return next_graph
-

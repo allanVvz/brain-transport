@@ -1,8 +1,8 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Download, read and publish inbound WhatsApp media.
 
 The webhook registers the attachment and holds dispatch
-(`media_ingest.MEDIA_HOLD_SECONDS`); this worker does the slow half â€” fetch the
+(`media_ingest.MEDIA_HOLD_SECONDS`); this worker does the slow half — fetch the
 bytes from the provider, store them in the private bucket, run the asset
 pipeline, then write the extracted text back into the buffer and release the
 hold.
@@ -56,7 +56,7 @@ class MediaIngestWorker(BaseWorker):
                 )
                 self._fail(asset, str(exc)[:300])
 
-    # â”€â”€ one asset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── one asset ────────────────────────────────────────────────────────
     def _process(self, asset: dict) -> None:
         asset_id = str(asset.get("id") or "")
         metadata = asset.get("metadata") or {}
@@ -143,7 +143,7 @@ class MediaIngestWorker(BaseWorker):
 
         self._attach_to_graph(asset_id)
 
-    # â”€â”€ steps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── steps ────────────────────────────────────────────────────────────
     def _is_stale(self, asset: dict) -> bool:
         created = asset.get("created_at")
         if not created:
@@ -189,7 +189,7 @@ class MediaIngestWorker(BaseWorker):
         return path
 
     def _attach_to_graph(self, asset_id: str) -> None:
-        """Hang the asset under conversation â†’ audience â†’ campaign.
+        """Hang the asset under conversation → audience → campaign.
 
         Best-effort on purpose: the file is already stored and the reply is
         already unblocked, so a graph publish failure must not fail ingest.
@@ -235,4 +235,3 @@ def _extension(descriptor: dict, filename: str | None) -> str:
         "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
         "video/mp4": ".mp4", "application/pdf": ".pdf",
     }.get(mime, "")
-

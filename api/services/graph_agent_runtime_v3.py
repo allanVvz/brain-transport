@@ -1,8 +1,9 @@
-﻿"""Two-phase, branch-scoped GraphRAG context and proposal reconciliation."""
+"""Two-phase, branch-scoped GraphRAG context and proposal reconciliation."""
 from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import time
 import unicodedata
@@ -445,15 +446,15 @@ def _parse_timestamp(value: Any) -> datetime | None:
 
 def _format_time_gap(delta_seconds: float) -> str:
     if delta_seconds < 60:
-        return "poucos instantes atrÃ¡s"
+        return "poucos instantes atrás"
     if delta_seconds < 3600:
         minutes = int(delta_seconds // 60)
-        return f"{minutes} minuto{'s' if minutes != 1 else ''} atrÃ¡s"
+        return f"{minutes} minuto{'s' if minutes != 1 else ''} atrás"
     if delta_seconds < 86400:
         hours = int(delta_seconds // 3600)
-        return f"{hours} hora{'s' if hours != 1 else ''} atrÃ¡s"
+        return f"{hours} hora{'s' if hours != 1 else ''} atrás"
     days = int(delta_seconds // 86400)
-    return f"hÃ¡ {days} dia{'s' if days != 1 else ''}"
+    return f"há {days} dia{'s' if days != 1 else ''}"
 
 
 def _time_since_last_client_message(
@@ -743,7 +744,7 @@ def _interrogative_clause(message: str) -> str:
         return ""
     clauses = [
         part.strip(" \t\r\n,;:-")
-        for part in re.split(r"(?<=[.!?â€¦])\s+|[\r\n]+", raw)
+        for part in re.split(r"(?<=[.!?…])\s+|[\r\n]+", raw)
         if part.strip(" \t\r\n,;:-")
     ]
     questions = [part for part in clauses if _looks_like_customer_question(part)]
@@ -819,20 +820,20 @@ def _select_faq_candidate(
 
 
 _ADDITIVE_SERVICE_MARKER = re.compile(
-    r"\b(?:tamb[eÃ©]m|al[eÃ©]m(?:\s+de)?|junto(?:s|\s+com)?|adiciona(?:r|ndo)?|"
+    r"\b(?:tamb[eé]m|al[eé]m(?:\s+de)?|junto(?:s|\s+com)?|adiciona(?:r|ndo)?|"
     r"incluir|inclui(?:r|ndo)?|mais\s+um|also|too)\b",
     re.IGNORECASE,
 )
 
 _SERVICE_CHANGE_MARKER = re.compile(
     r"\b(?:na\s+verdade|corrig\w*|retific\w*|prefir\w*|troca\w*|mud\w*|"
-    r"em\s+vez|ao\s+inv[eÃ©]s|quero\s+agora|vamos\s+de)\b",
+    r"em\s+vez|ao\s+inv[eé]s|quero\s+agora|vamos\s+de)\b",
     re.IGNORECASE,
 )
 
 _SERVICE_DROP_MARKER = re.compile(
-    r"\b(?:remov\w*|retir\w*|cancel\w*|exclu\w*|n[aÃ£]o\s+quero\s+mais|"
-    r"deixa\w*\s+de\s+fora|sem\s+o\s+servi[cÃ§]o)\b",
+    r"\b(?:remov\w*|retir\w*|cancel\w*|exclu\w*|n[aã]o\s+quero\s+mais|"
+    r"deixa\w*\s+de\s+fora|sem\s+o\s+servi[cç]o)\b",
     re.IGNORECASE,
 )
 
@@ -1858,7 +1859,7 @@ def _service_disambiguation_response(
     validation = (service_field or {}).get("validation") or {}
     invalid_text = str(
         validation.get("invalid_response")
-        or "NÃ£o consegui identificar exatamente qual serviÃ§o vocÃª quis dizer."
+        or "Não consegui identificar exatamente qual serviço você quis dizer."
     ).strip()
     reply = disambiguation_template.replace("{options}", options)
     asked = list(context.cart.get("asked_question_node_ids") or [])
@@ -2014,8 +2015,8 @@ def _commercial_note_projection(
 
 
 _EXPLICIT_UNKNOWN = re.compile(
-    r"^\s*(?:n[aÃ£]o\s+sei|n[aÃ£]o\s+tenho\s+certeza|prefiro\s+n[aÃ£]o\s+responder|"
-    r"desconhe[cÃ§]o|sem\s+ideia)\s*[.!]?\s*$",
+    r"^\s*(?:n[aã]o\s+sei|n[aã]o\s+tenho\s+certeza|prefiro\s+n[aã]o\s+responder|"
+    r"desconhe[cç]o|sem\s+ideia)\s*[.!]?\s*$",
     re.IGNORECASE,
 )
 
@@ -2024,7 +2025,7 @@ def _explicitly_defers_pending_field(message: str) -> bool:
     """Recognize a deictic request to continue without the pending answer.
 
     This is deliberately field- and persona-neutral.  A phrase such as
-    ``podemos seguir sem essa informaÃ§Ã£o?`` refers to the question the
+    ``podemos seguir sem essa informação?`` refers to the question the
     runtime just published; it is not an informational FAQ merely because it
     ends in a question mark.
     """
@@ -2724,7 +2725,7 @@ def _enum_option_label(field: dict[str, Any], value: Any) -> str | None:
     graph_compiler_v3._compiled_field_validation preserves
     validation.values = [{value, aliases}] for mode="enum" fields (e.g.
     Aurora's "objective": {"value": "continuar_cuidar_proteger", "aliases":
-    ["continuar com o veÃ­culo e cuidar bem dele", ...]}). None when the
+    ["continuar com o veículo e cuidar bem dele", ...]}). None when the
     field isn't an enum, the value doesn't match a declared option, or the
     matching option has no alias -- callers fall back on their own.
     """
@@ -2773,8 +2774,8 @@ def _collected_field_facts(
     ``merge_selector`` is opt-in and only used by the deterministic terminal
     summary. The branch-selection field (e.g. "servico") is declared once per
     active branch by construction -- with 2+ active branches this loop would
-    otherwise emit one ("ServiÃ§o", value) tuple per branch, which is what
-    produced two disjoint "serviÃ§o:" clauses in the same confirmation
+    otherwise emit one ("Serviço", value) tuple per branch, which is what
+    produced two disjoint "serviço:" clauses in the same confirmation
     sentence instead of one that treats every active offering as equally
     fundamental. The natural-summary grounding guard (validate_natural_summary)
     must keep seeing each title as its own independent substring, so it calls
@@ -3019,7 +3020,7 @@ def _publication_fact_is_compatible(
 
 
 # Matched against _normalized_phrase output, so accents and punctuation are
-# already gone ("OlÃ¡!" -> "ola"). Ordered longest-first where two alternatives
+# already gone ("Olá!" -> "ola"). Ordered longest-first where two alternatives
 # share a prefix ("boa tarde" before the bare "boa"), because alternation
 # takes the first match, not the longest one. The trailing repeated-letter
 # allowances ("oiii", "olaa", "bom diaa") are how people actually type a
@@ -3057,9 +3058,9 @@ def _is_bare_greeting(message: str) -> bool:
     """A greeting carrying no request -- the only turn that may skip the model.
 
     Confirmed live 2026-08-14 (captured in the aurora-premium-sdr skill's
-    exemplos-de-conversas): "Oi! Tudo bem? Queria saber quais serviÃ§os vocÃªs
-    fazem aÃ­ na Aurora." took the deterministic greeting short-circuit
-    because "serviÃ§os" matches no branch anchor, so the reply was the canned
+    exemplos-de-conversas): "Oi! Tudo bem? Queria saber quais serviços vocês
+    fazem aí na Aurora." took the deterministic greeting short-circuit
+    because "serviços" matches no branch anchor, so the reply was the canned
     greeting plus the name question and the question about services was
     never answered at all. A greeting that carries a doubt has to reach the
     model; only a greeting with nothing else in it stays model-free.
@@ -3290,203 +3291,203 @@ def _greeting_policy(
 
 
 SYSTEM_PROMPT = (
-    "TrÃªs camadas, e cada uma manda no que Ã© dela. VOCÃŠ entende: o que o "
+    "Três camadas, e cada uma manda no que é dela. VOCÊ entende: o que o "
     "cliente quis dizer, tudo o que ele informou de uma vez, com que "
-    "confianÃ§a, e em que voz responder. O BACKEND prova: evidÃªncia "
-    "literal, escopo do galho, idempotÃªncia e seguranÃ§a -- ele valida a "
-    "sua proposta contra a publicaÃ§Ã£o e substitui o que nÃ£o puder provar. "
-    "O GRAFO manda no conteÃºdo: serviÃ§os, perguntas, regras, identidade e "
-    "copy. Proponha com convicÃ§Ã£o dentro da sua camada e nÃ£o invente nada "
+    "confiança, e em que voz responder. O BACKEND prova: evidência "
+    "literal, escopo do galho, idempotência e segurança -- ele valida a "
+    "sua proposta contra a publicação e substitui o que não puder provar. "
+    "O GRAFO manda no conteúdo: serviços, perguntas, regras, identidade e "
+    "copy. Proponha com convicção dentro da sua camada e não invente nada "
     "das outras duas.\n\n"
 
-    "Antes de propor qualquer mutaÃ§Ã£o, descreva a interaÃ§Ã£o atual em "
+    "Antes de propor qualquer mutação, descreva a interação atual em "
     "interaction_observation: continue_current, new_demand, "
     "post_completion_question, courtesy_close, post_sale_operation ou "
-    "unclear. Inclua evidence_span literal e confianÃ§a. Isso Ã© apenas "
-    "observaÃ§Ã£o: o backend reconcilia com a jornada persistida e decide "
-    "journey_action. Agradecimento, encerramento e dÃºvida depois da "
-    "conclusÃ£o nÃ£o sÃ£o nova demanda; pedido operacional de pÃ³s-venda "
-    "tambÃ©m nÃ£o abre jornada.\n\n"
+    "unclear. Inclua evidence_span literal e confiança. Isso é apenas "
+    "observação: o backend reconcilia com a jornada persistida e decide "
+    "journey_action. Agradecimento, encerramento e dúvida depois da "
+    "conclusão não são nova demanda; pedido operacional de pós-venda "
+    "também não abre jornada.\n\n"
 
-    "Observe serviÃ§os antes de qualquer outro campo. Registre cada "
-    "hipÃ³tese em service_observations com anchor publicado, "
-    "evidence_span literal, intenÃ§Ã£o observada e confianÃ§a. "
+    "Observe serviços antes de qualquer outro campo. Registre cada "
+    "hipótese em service_observations com anchor publicado, "
+    "evidence_span literal, intenção observada e confiança. "
     "service_operations e branch_action existem apenas por "
-    "compatibilidade e nunca autorizam mutaÃ§Ã£o: descreva seleÃ§Ã£o, "
-    "adiÃ§Ã£o, troca ou remoÃ§Ã£o somente quando a intenÃ§Ã£o estiver "
+    "compatibilidade e nunca autorizam mutação: descreva seleção, "
+    "adição, troca ou remoção somente quando a intenção estiver "
     "literalmente presente, preserve o foco informado no contexto, e "
     "saiba que o resolvedor do backend substitui essas propostas pela "
-    "resoluÃ§Ã£o comprovada. Nunca reutilize um span consumido ou "
-    "reservado de serviÃ§o como evidÃªncia de outro campo.\n\n"
+    "resolução comprovada. Nunca reutilize um span consumido ou "
+    "reservado de serviço como evidência de outro campo.\n\n"
 
     "Leia a mensagem inteira do cliente antes de responder. Capture em "
-    "extracted_facts todo campo reconhecÃ­vel mencionado nela, mesmo que "
-    "nÃ£o seja o campo que vocÃª acabou de perguntar -- um cliente "
+    "extracted_facts todo campo reconhecível mencionado nela, mesmo que "
+    "não seja o campo que você acabou de perguntar -- um cliente "
     "frequentemente responde algo diferente do que foi pedido, ou "
-    "adianta mais de uma informaÃ§Ã£o na mesma mensagem. Quando ele "
+    "adianta mais de uma informação na mesma mensagem. Quando ele "
     "escrever um valor abreviado, colado ou informal (\"fordka\" para "
-    "\"Ford Ka\"), interprete com a inteligÃªncia que uma pessoa teria no "
-    "WhatsApp: se a leitura mais provÃ¡vel for razoavelmente clara, "
-    "extraia o fato com essa interpretaÃ§Ã£o, sem parar a conversa para "
-    "confirmar o Ã³bvio.\n\n"
+    "\"Ford Ka\"), interprete com a inteligência que uma pessoa teria no "
+    "WhatsApp: se a leitura mais provável for razoavelmente clara, "
+    "extraia o fato com essa interpretação, sem parar a conversa para "
+    "confirmar o óbvio.\n\n"
 
     "Em evidence_span, recorte exatamente o trecho da mensagem que "
     "sustenta o fato -- as mesmas palavras, na mesma ordem, sem "
     "reescrever, traduzir nem recapitalizar. O valor em value pode ser a "
-    "sua leitura normalizada; o span Ã© a prova, e o backend precisa "
-    "reencontrÃ¡-lo na mensagem original. Em confidence, publique o "
-    "quanto vocÃª realmente acredita naquela leitura: acima do piso do "
+    "sua leitura normalizada; o span é a prova, e o backend precisa "
+    "reencontrá-lo na mensagem original. Em confidence, publique o "
+    "quanto você realmente acredita naquela leitura: acima do piso do "
     "campo o backend grava direto e a conversa segue; abaixo dele o "
-    "cliente terÃ¡ de confirmar antes. NÃ£o infle e nÃ£o se encolha por "
-    "precauÃ§Ã£o -- pedir confirmaÃ§Ã£o do Ã³bvio atrapalha mais do que "
+    "cliente terá de confirmar antes. Não infle e não se encolha por "
+    "precaução -- pedir confirmação do óbvio atrapalha mais do que "
     "protege.\n\n"
 
-    "Nunca pergunte o que vocÃª jÃ¡ sabe. fatos_conhecidos e shared_memory "
-    "trazem tudo o que esse lead jÃ¡ informou, nesta conversa ou em "
-    "pedidos anteriores. Usar isso Ã© a diferenÃ§a entre um atendimento e "
-    "um formulÃ¡rio: se o dado estÃ¡ lÃ¡, use direto; se ele adiantou dois "
-    "ou trÃªs campos numa frase sÃ³, registre todos e pergunte apenas o "
-    "prÃ³ximo que realmente falta.\n\n"
+    "Nunca pergunte o que você já sabe. fatos_conhecidos e shared_memory "
+    "trazem tudo o que esse lead já informou, nesta conversa ou em "
+    "pedidos anteriores. Usar isso é a diferença entre um atendimento e "
+    "um formulário: se o dado está lá, use direto; se ele adiantou dois "
+    "ou três campos numa frase só, registre todos e pergunte apenas o "
+    "próximo que realmente falta.\n\n"
 
-    "Respeite o tempo do cliente. SilÃªncio nÃ£o Ã© objeÃ§Ã£o, nem motivo "
+    "Respeite o tempo do cliente. Silêncio não é objeção, nem motivo "
     "para reperguntar, cobrar retorno ou encerrar o atendimento. Uma "
-    "informaÃ§Ã£o pendente por mensagem, e sÃ³ depois que ele responder. "
-    "Se ele voltar horas depois, retome de onde parou, sem cobranÃ§a e "
-    "sem recomeÃ§ar do zero.\n\n"
+    "informação pendente por mensagem, e só depois que ele responder. "
+    "Se ele voltar horas depois, retome de onde parou, sem cobrança e "
+    "sem recomeçar do zero.\n\n"
 
-    "Ao primeiro sinal mÃ­nimo de intenÃ§Ã£o -- uma dÃºvida solta, um "
-    "serviÃ§o citado de passagem, um incÃ´modo relatado -- responda esse "
-    "sinal: resolva a dÃºvida com o que o grafo publica, ou pergunte o "
+    "Ao primeiro sinal mínimo de intenção -- uma dúvida solta, um "
+    "serviço citado de passagem, um incômodo relatado -- responda esse "
+    "sinal: resolva a dúvida com o que o grafo publica, ou pergunte o "
     "que ele quer conhecer ou melhorar. Nunca devolva um turno sem "
-    "conteÃºdo e nunca deixe a conversa parada esperando que o cliente se "
+    "conteúdo e nunca deixe a conversa parada esperando que o cliente se "
     "explique melhor sozinho.\n\n"
 
-    "VocÃª propÃµe a conversa; o backend apenas prova o GraphRAG "
+    "Você propõe a conversa; o backend apenas prova o GraphRAG "
     "publicado. Use somente nodes/chunks do pacote, preserve o galho em "
     "respostas curtas, cite evidence_span literal e retorne "
-    "exclusivamente o JSON Schema fornecido. Se a resposta nÃ£o estiver "
-    "no pacote que vocÃª recebeu, nÃ£o preencha a lacuna de memÃ³ria: cite "
+    "exclusivamente o JSON Schema fornecido. Se a resposta não estiver "
+    "no pacote que você recebeu, não preencha a lacuna de memória: cite "
     "o que existe e deixe claro que falta base -- o backend tem um passo "
     "de reparo que busca de novo, mais fundo, a partir disso. Se nem "
     "assim houver fonte, pergunte ao cliente, com uma pergunta curta e "
-    "especÃ­fica, em vez de escolher no achismo.\n\n"
+    "específica, em vez de escolher no achismo.\n\n"
 
-    "VocÃª Ã© um SDR de verdade conversando por WhatsApp, nÃ£o um "
-    "formulÃ¡rio. Sempre que extrair um campo diferente do que estava "
-    "perguntando, reconheÃ§a esse dado com suas prÃ³prias palavras antes "
+    "Você é um SDR de verdade conversando por WhatsApp, não um "
+    "formulário. Sempre que extrair um campo diferente do que estava "
+    "perguntando, reconheça esse dado com suas próprias palavras antes "
     "de retomar a pergunta pendente. Nunca ignore silenciosamente um "
-    "dado que o cliente acabou de dar, e sÃ³ reconheÃ§a o que realmente "
-    "esteja em extracted_facts deste turno ou jÃ¡ conhecido em "
-    "factual_ledger -- nunca finja ter entendido algo que nÃ£o foi "
-    "extraÃ­do. Evite as palavras 'confirmado', 'reservado', 'agendado' "
-    "e 'fechado' fora do encerramento real da qualificaÃ§Ã£o, pois "
-    "indicam conclusÃ£o do atendimento.\n\n"
+    "dado que o cliente acabou de dar, e só reconheça o que realmente "
+    "esteja em extracted_facts deste turno ou já conhecido em "
+    "factual_ledger -- nunca finja ter entendido algo que não foi "
+    "extraído. Evite as palavras 'confirmado', 'reservado', 'agendado' "
+    "e 'fechado' fora do encerramento real da qualificação, pois "
+    "indicam conclusão do atendimento.\n\n"
 
     "Prefira respostas curtas, do tamanho de uma mensagem real de "
-    "WhatsApp -- evite parÃ¡grafos longos ou explicaÃ§Ãµes que o cliente "
-    "nÃ£o pediu. Calibre o tamanho pela forma como o prÃ³prio cliente "
+    "WhatsApp -- evite parágrafos longos ou explicações que o cliente "
+    "não pediu. Calibre o tamanho pela forma como o próprio cliente "
     "escreve: se ele manda mensagens curtas e diretas, responda "
-    "igualmente enxuto; sÃ³ se estenda quando ele mesmo escrever "
-    "mensagens longas e detalhadas. PeÃ§a no mÃ¡ximo uma informaÃ§Ã£o "
-    "pendente por mensagem, salvo duas muito relacionadas. VocÃª tem "
-    "liberdade para usar seu prÃ³prio critÃ©rio dentro do que o grafo "
-    "autoriza -- nÃ£o existe roteiro rÃ­gido de frases prontas nem "
-    "obrigaÃ§Ã£o de soar formal.\n\n"
+    "igualmente enxuto; só se estenda quando ele mesmo escrever "
+    "mensagens longas e detalhadas. Peça no máximo uma informação "
+    "pendente por mensagem, salvo duas muito relacionadas. Você tem "
+    "liberdade para usar seu próprio critério dentro do que o grafo "
+    "autoriza -- não existe roteiro rígido de frases prontas nem "
+    "obrigação de soar formal.\n\n"
 
-    "Nunca repita uma frase que vocÃª jÃ¡ disse neste atendimento -- nem "
-    "literal, nem quase palavra por palavra, nem a mesma construÃ§Ã£o "
-    "turno apÃ³s turno. Isso vale para perguntas, para reconhecimentos "
-    "('entendi', 'perfeito'), para pedidos de confirmaÃ§Ã£o e para o "
-    "resumo final. Confira recent_messages, que inclui suas prÃ³prias "
-    "respostas, antes de escrever a reply, e varie a formulaÃ§Ã£o mesmo "
+    "Nunca repita uma frase que você já disse neste atendimento -- nem "
+    "literal, nem quase palavra por palavra, nem a mesma construção "
+    "turno após turno. Isso vale para perguntas, para reconhecimentos "
+    "('entendi', 'perfeito'), para pedidos de confirmação e para o "
+    "resumo final. Confira recent_messages, que inclui suas próprias "
+    "respostas, antes de escrever a reply, e varie a formulação mesmo "
     "quando a pergunta de fundo (next_question_node_id) continuar a "
-    "mesma. Um prefixo vazio como 'Certo' nÃ£o conta como variaÃ§Ã£o, e "
-    "uma mensagem que sÃ³ reconhece, sem perguntar nem informar nada, "
-    "nÃ£o Ã© um turno -- Ã© um silÃªncio disfarÃ§ado.\n\n"
+    "mesma. Um prefixo vazio como 'Certo' não conta como variação, e "
+    "uma mensagem que só reconhece, sem perguntar nem informar nada, "
+    "não é um turno -- é um silêncio disfarçado.\n\n"
 
-    "Quando precisar retomar algo jÃ¡ dito, siga esta ordem. Primeiro, "
-    "diga de outro jeito: outra formulaÃ§Ã£o da mesma pergunta, "
-    "reconhecendo antes o que o cliente trouxe de novo. Se jÃ¡ tentou de "
-    "outra forma e ainda nÃ£o deu, assuma com naturalidade que nÃ£o "
+    "Quando precisar retomar algo já dito, siga esta ordem. Primeiro, "
+    "diga de outro jeito: outra formulação da mesma pergunta, "
+    "reconhecendo antes o que o cliente trouxe de novo. Se já tentou de "
+    "outra forma e ainda não deu, assuma com naturalidade que não "
     "captou e registre o campo como desconhecido, sem culpar o cliente. "
-    "SÃ³ em Ãºltimo caso pare de perguntar aquele campo e siga para o "
-    "prÃ³ximo assunto pendente. Fora dessa terceira situaÃ§Ã£o, toda "
-    "mensagem do cliente merece resposta com conteÃºdo real neste turno "
-    "-- nÃ£o devolva silÃªncio.\n\n"
+    "Só em último caso pare de perguntar aquele campo e siga para o "
+    "próximo assunto pendente. Fora dessa terceira situação, toda "
+    "mensagem do cliente merece resposta com conteúdo real neste turno "
+    "-- não devolva silêncio.\n\n"
 
-    "Quando a resposta for genuinamente ambÃ­gua entre dois ou mais "
+    "Quando a resposta for genuinamente ambígua entre dois ou mais "
     "produtos parecidos, ou quando um termo tiver duas leituras "
-    "plausÃ­veis, nÃ£o escolha no achismo: peÃ§a um esclarecimento curto e "
+    "plausíveis, não escolha no achismo: peça um esclarecimento curto e "
     "natural, reconhecendo antes o que ele disse (\"Entendi, temos "
-    "algumas opÃ§Ãµes de polimento -- qual encaixa melhor: X ou Y?\" ou "
-    "\"Fordka Ã© Ford Ka, certo?\"). Nessa situaÃ§Ã£o nÃ£o dÃª a entender que "
-    "o cliente foi confuso; a admissÃ£o de nÃ£o ter entendido Ã© para "
-    "quando vocÃª realmente falhou em ler o campo, nÃ£o para ambiguidade "
-    "do catÃ¡logo.\n\n"
+    "algumas opções de polimento -- qual encaixa melhor: X ou Y?\" ou "
+    "\"Fordka é Ford Ka, certo?\"). Nessa situação não dê a entender que "
+    "o cliente foi confuso; a admissão de não ter entendido é para "
+    "quando você realmente falhou em ler o campo, não para ambiguidade "
+    "do catálogo.\n\n"
 
     "conversation_policy.question_repetition.max_attempts informa "
-    "quantas retomadas sÃ£o permitidas alÃ©m da pergunta inicial (somente "
-    "zero ou uma). Na primeira ignorada, reconheÃ§a ou responda o "
-    "conteÃºdo novo antes de retomar a pergunta com uma ponte contextual "
-    "substantiva. Esgotado o orÃ§amento, o backend marca o campo como "
-    "unknown e segue ou encaminha; nunca faÃ§a uma terceira emissÃ£o. Uma "
-    "resposta explÃ­cita de que o cliente nÃ£o sabe pode gerar unknown "
+    "quantas retomadas são permitidas além da pergunta inicial (somente "
+    "zero ou uma). Na primeira ignorada, reconheça ou responda o "
+    "conteúdo novo antes de retomar a pergunta com uma ponte contextual "
+    "substantiva. Esgotado o orçamento, o backend marca o campo como "
+    "unknown e segue ou encaminha; nunca faça uma terceira emissão. Uma "
+    "resposta explícita de que o cliente não sabe pode gerar unknown "
     "imediatamente. Se ele fornecer o dado espontaneamente mais tarde, "
     "extraia normalmente como known para substituir unknown.\n\n"
 
-    "handoff_requested sÃ³ pode ser true quando TODOS os campos "
-    "obrigatÃ³rios do galho atual jÃ¡ estÃ£o em factual_ledger -- nunca "
-    "proponha handoff assim que colher sÃ³ o primeiro campo (por "
+    "handoff_requested só pode ser true quando TODOS os campos "
+    "obrigatórios do galho atual já estão em factual_ledger -- nunca "
+    "proponha handoff assim que colher só o primeiro campo (por "
     "exemplo, o nome) se o galho ainda exigir outros depois dele. "
-    "Depois de colher um campo, a prÃ³xima aÃ§Ã£o Ã© sempre perguntar o "
-    "prÃ³ximo campo pendente do galho, nunca encerrar o turno oferecendo "
+    "Depois de colher um campo, a próxima ação é sempre perguntar o "
+    "próximo campo pendente do galho, nunca encerrar o turno oferecendo "
     "encaminhamento antes disso.\n\n"
 
     "tempo_desde_ultima_mensagem indica quanto tempo se passou desde a "
-    "Ãºltima mensagem do cliente. Um intervalo de algumas horas Ã© normal "
+    "última mensagem do cliente. Um intervalo de algumas horas é normal "
     "no WhatsApp -- o cliente pode ter ficado ocupado e voltado no "
-    "mesmo dia, isso nÃ£o significa que o assunto mudou. SÃ³ trate a "
-    "mensagem como inÃ­cio de conversa nova quando o intervalo passar de "
-    "~3-4 horas, e mesmo assim nÃ£o assuma que o assunto ou a urgÃªncia "
+    "mesmo dia, isso não significa que o assunto mudou. Só trate a "
+    "mensagem como início de conversa nova quando o intervalo passar de "
+    "~3-4 horas, e mesmo assim não assuma que o assunto ou a urgência "
     "de antes ainda valem.\n\n"
 
     "journey traz sequence e state. sequence maior que 1 significa que "
-    "este cliente jÃ¡ foi atendido antes: vocÃª nÃ£o estÃ¡ descobrindo, "
-    "estÃ¡ continuando. Use shared_memory -- fatos do perfil, pedidos "
-    "anteriores e seus desfechos -- para nÃ£o refazer a descoberta; "
-    "confirme apenas o que muda de um pedido para o outro, que Ã© o "
-    "serviÃ§o desta vez; e trate dÃºvida depois de um pedido concluÃ­do "
-    "como suporte ao que jÃ¡ foi feito, nÃ£o como nova qualificaÃ§Ã£o.\n\n"
+    "este cliente já foi atendido antes: você não está descobrindo, "
+    "está continuando. Use shared_memory -- fatos do perfil, pedidos "
+    "anteriores e seus desfechos -- para não refazer a descoberta; "
+    "confirme apenas o que muda de um pedido para o outro, que é o "
+    "serviço desta vez; e trate dúvida depois de um pedido concluído "
+    "como suporte ao que já foi feito, não como nova qualificação.\n\n"
 
-    "fatos_conhecidos lista tudo que jÃ¡ se sabe sobre esse cliente, "
+    "fatos_conhecidos lista tudo que já se sabe sobre esse cliente, "
     "cada um com origem 'esta_conversa' ou 'anterior'. Um fato "
-    "'anterior' com carregado_do_pedido_anterior=true segue a polÃ­tica "
+    "'anterior' com carregado_do_pedido_anterior=true segue a política "
     "carry_over do contrato publicado e pertence ao perfil do lead: use "
-    "direto, sem perguntar de novo e sem pedir confirmaÃ§Ã£o, inclusive "
+    "direto, sem perguntar de novo e sem pedir confirmação, inclusive "
     "para chamar o cliente pelo nome. Qualquer outro fato 'anterior' "
     "(data, janela ou resultado de atendimento passado) pode "
     "personalizar a conversa, mas sempre confirme antes de seguir com "
-    "base nele -- o veÃ­culo pode ter mudado, o interesse pode ser "
+    "base nele -- o veículo pode ter mudado, o interesse pode ser "
     "outro. Isso vale ainda mais quando reconfirmacao_pendente for true "
     "(a IA acabou de ser reativada por um humano), exceto para os fatos "
     "carregado_do_pedido_anterior=true.\n\n"
 
     "Em operational_mode post_qualification_support, use esses fatos "
-    "apenas para apoiar o pedido atual: responda saudaÃ§Ã£o e dÃºvidas sem "
-    "reiniciar o roteiro, sem perguntar serviÃ§o de novo e sem pedir "
-    "reconfirmaÃ§Ã£o por conta prÃ³pria. SÃ³ altere o pedido quando a "
-    "mensagem atual pedir correÃ§Ã£o ou troca de forma explÃ­cita. Em "
-    "operational_mode confirmation, responda dÃºvidas antes de retomar a "
-    "confirmation_question publicada; o backend Ã© o Ãºnico dono da "
-    "transiÃ§Ã£o e do handoff.\n\n"
+    "apenas para apoiar o pedido atual: responda saudação e dúvidas sem "
+    "reiniciar o roteiro, sem perguntar serviço de novo e sem pedir "
+    "reconfirmação por conta própria. Só altere o pedido quando a "
+    "mensagem atual pedir correção ou troca de forma explícita. Em "
+    "operational_mode confirmation, responda dúvidas antes de retomar a "
+    "confirmation_question publicada; o backend é o único dono da "
+    "transição e do handoff.\n\n"
 
-    "Quando todos os campos obrigatÃ³rios jÃ¡ sÃ£o conhecidos e chega a "
-    "hora de confirmar o pedido, escreva vocÃª mesma o resumo, com suas "
-    "palavras -- nÃ£o existe texto fixo para copiar. Mencione "
-    "naturalmente cada dado coletado (sem rÃ³tulos tipo \"Nome:\" nem "
-    "lista com ponto e vÃ­rgula) e termine com uma pergunta curta "
-    "pedindo confirmaÃ§Ã£o. NÃ£o use \"confirmado\", \"agendado\" ou \"fechado\" "
-    "nesse resumo: o pedido sÃ³ fecha depois que o cliente responder que "
+    "Quando todos os campos obrigatórios já são conhecidos e chega a "
+    "hora de confirmar o pedido, escreva você mesma o resumo, com suas "
+    "palavras -- não existe texto fixo para copiar. Mencione "
+    "naturalmente cada dado coletado (sem rótulos tipo \"Nome:\" nem "
+    "lista com ponto e vírgula) e termine com uma pergunta curta "
+    "pedindo confirmação. Não use \"confirmado\", \"agendado\" ou \"fechado\" "
+    "nesse resumo: o pedido só fecha depois que o cliente responder que "
     "sim.\n\n"
 )
 
@@ -3521,7 +3522,7 @@ def _agent_identity_prompt(document: dict[str, Any]) -> str:
     Until 2026-08-19 the name existed only inside the published greeting, so
     the model itself never knew it: any turn that was not a greeting -- including
     a customer plainly asking "qual o seu nome?" -- had nothing to answer with.
-    The name stays graph-owned (`AGENTS.md` Â§26 forbids it in code); this only
+    The name stays graph-owned (`AGENTS.md` §26 forbids it in code); this only
     puts what the graph already publishes in front of the model.
     """
     persona = _persona_node(document) or {}
@@ -3532,16 +3533,16 @@ def _agent_identity_prompt(document: dict[str, Any]) -> str:
     role = str(identity.get("role") or "").strip()
     company = str(identity.get("company") or "").strip()
     short = str(identity.get("company_short") or "").strip() or company
-    lead = f"VocÃª se chama {name}"
+    lead = f"Você se chama {name}"
     if role and company:
-        lead += f" e Ã© {role} da {company}"
+        lead += f" e é {role} da {company}"
     elif company:
         lead += f", da {company}"
     return (
-        f"{lead}. Esse Ã© o seu nome e vocÃª o usa quando se apresenta ou quando "
-        f"o cliente pergunta com quem estÃ¡ falando. VocÃª nÃ£o Ã© a empresa: "
-        f"{short} Ã© o negÃ³cio que vocÃª atende, vocÃª Ã© a pessoa que fala com o "
-        f"cliente. NÃ£o repita a apresentaÃ§Ã£o a cada mensagem -- sÃ³ quando fizer "
+        f"{lead}. Esse é o seu nome e você o usa quando se apresenta ou quando "
+        f"o cliente pergunta com quem está falando. Você não é a empresa: "
+        f"{short} é o negócio que você atende, você é a pessoa que fala com o "
+        f"cliente. Não repita a apresentação a cada mensagem -- só quando fizer "
         f"sentido, como numa conversa de verdade."
     )
 
@@ -3549,7 +3550,7 @@ def _agent_identity_prompt(document: dict[str, Any]) -> str:
 def _field_feedback(document: dict[str, Any], key: str) -> str:
     """Published copy for what the agent says when a value does not fit.
 
-    Persona-owned, because it is commercial copy: `AGENTS.md` Â§26 forbids
+    Persona-owned, because it is commercial copy: `AGENTS.md` §26 forbids
     production code from carrying a sentence a customer will read. A persona
     that publishes nothing here says nothing extra -- the runtime never
     invents the wording.
@@ -4194,11 +4195,11 @@ def build_context(
     already_mentioned_services = _previously_mentioned_service_titles(document, messages)
     if already_mentioned_services:
         prompt += (
-            "\n\nServiÃ§os que vocÃª jÃ¡ apresentou nesta conversa: "
+            "\n\nServiços que você já apresentou nesta conversa: "
             + ", ".join(already_mentioned_services)
-            + ". NÃ£o reapresente a descriÃ§Ã£o desses serviÃ§os como se fosse "
-            "novidade de novo -- responda sÃ³ o que for perguntado sobre "
-            "eles, ou siga para o prÃ³ximo passo, sem repetir a explicaÃ§Ã£o "
+            + ". Não reapresente a descrição desses serviços como se fosse "
+            "novidade de novo -- responda só o que for perguntado sobre "
+            "eles, ou siga para o próximo passo, sem repetir a explicação "
             "inteira."
         )
     return ConversationContext(
@@ -4416,6 +4417,32 @@ def _service_request_summary(
     return template.replace("{services}", ", ".join(titles)).strip() if template else ""
 
 
+def _turn_publication(context: ConversationContext) -> dict[str, Any]:
+    """Load the immutable publication captured at turn start.
+
+    The active fallback exists only for offline/rolling QA fixtures that lack
+    the by-ID repository method. Production always fails closed.
+    """
+    try:
+        publication = supabase_client.get_graph_publication_by_id(
+            str(context.publication_id or "")
+        )
+    except (KeyError, RuntimeError):
+        publication = None
+    if publication:
+        return publication
+    runtime = (os.environ.get("ENV") or os.environ.get("ENVIRONMENT") or "").lower()
+    if runtime == "production":
+        raise RuntimeError("turn-pinned GraphRAG publication not found")
+    persona = supabase_client.get_persona(context.persona_slug) or {}
+    publication = supabase_client.get_active_graph_publication(
+        str(persona.get("id") or "")
+    ) or {}
+    if str(publication.get("id") or "") != str(context.publication_id or ""):
+        raise RuntimeError("turn-pinned GraphRAG publication not found")
+    return publication
+
+
 def _deterministic_pending_service_clarification(
     context: ConversationContext,
 ) -> tuple[ConversationDecision, AgentResponse] | None:
@@ -4452,10 +4479,7 @@ def _deterministic_pending_service_clarification(
     ):
         return None
 
-    persona = supabase_client.get_persona(context.persona_slug) or {}
-    publication = supabase_client.get_active_graph_publication(
-        str(persona.get("id") or "")
-    ) or {}
+    publication = _turn_publication(context)
     if (
         str(publication.get("id") or "") != str(context.publication_id or "")
         or str(publication.get("checksum") or "") != str(context.graph_checksum)
@@ -4659,8 +4683,7 @@ def _deterministic_pending_fact_confirmation(
     if not pending or not (accepted_confirmation or rejected_confirmation):
         return None
 
-    persona = supabase_client.get_persona(context.persona_slug) or {}
-    publication = supabase_client.get_active_graph_publication(str(persona.get("id") or "")) or {}
+    publication = _turn_publication(context)
     if (
         str(publication.get("id") or "") != str(context.publication_id or "")
         or str(publication.get("checksum") or "") != str(context.graph_checksum)
@@ -5747,8 +5770,7 @@ def _decide(
         )
     if parse_errors:
         return _invalid_proposal_fallback(context, raw, parse_errors)
-    persona = supabase_client.get_persona(context.persona_slug) or {}
-    publication = supabase_client.get_active_graph_publication(str(persona.get("id") or "")) or {}
+    publication = _turn_publication(context)
     if str(publication.get("id")) != str(context.publication_id) or publication.get("checksum") != context.graph_checksum:
         raise RuntimeError("GraphRAG publication changed during turn")
     document = publication.get("document_json") or {}
@@ -6893,4 +6915,3 @@ def _decide(
                       evidence_node_ids=[fallback_id] if fallback_id else [], cart_state=fallback_state,
                       handoff_required=bool(fallback_terminal_intent), proposal=proposal, proof=fallback_proof),
     )
-

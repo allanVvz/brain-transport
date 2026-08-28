@@ -1,4 +1,4 @@
-﻿"""Generic proof checker for structured GraphRAG model proposals."""
+"""Generic proof checker for structured GraphRAG model proposals."""
 from __future__ import annotations
 
 import difflib
@@ -19,14 +19,14 @@ _MEDIA_PLACEHOLDER = re.compile(
     re.IGNORECASE,
 )
 _CORRECTION_MARKER = re.compile(
-    r"\b(corrig|corre[cÃ§][aÃ£]o|na verdade|retific|correction|actually|i meant)\w*\b",
+    r"\b(corrig|corre[cç][aã]o|na verdade|retific|correction|actually|i meant)\w*\b",
     re.IGNORECASE,
 )
 _FINAL_CONFIRMATION = re.compile(
     r"\b(confirmad[oa]|reservad[oa]|agendad[oa]|fechad[oa]|booked|confirmed)\b",
     re.IGNORECASE,
 )
-_NAME_SEPARATORS = {"-", "'", "â€™"}
+_NAME_SEPARATORS = {"-", "'", "’"}
 # Generic floor/ceiling for a complete human name. The graph overrides them
 # per field via `validation.min_tokens` / `validation.max_tokens`.
 NAME_MIN_TOKENS = 2
@@ -157,7 +157,7 @@ def _resolved_for_field_owner(field: dict[str, Any], fact: dict[str, Any] | None
     Confirmed live 2026-08-06: field keys are shared across every product's
     field declarations (nome_cliente, modelo_veiculo, servico, ...), each
     with its own owner_node_id. field_resolved() alone only checks status
-    and value, never owner_node_id â€” so a fact accepted while a different
+    and value, never owner_node_id — so a fact accepted while a different
     branch was active (same key, different owner_node_id) silently counted
     as resolved for the new branch too after a switch. fact_compatible()
     already carries this owner check, but until now it only ran when the
@@ -535,7 +535,7 @@ def check(
             errors.append("branch_evidence_not_literal")
     elif action == "add":
         # A customer asking for an additional service without dropping the
-        # one already in progress (e.g. "quero higienizaÃ§Ã£o interna E
+        # one already in progress (e.g. "quero higienização interna E
         # polimento") -- unlike "switch", the previously active branch(es)
         # stay active too. Requires the same authorization/evidence bar as
         # "switch" (it is, after all, still an unsolicited branch-scope
@@ -755,7 +755,7 @@ def check(
             for value in policy.get("evidence_node_ids") or []
         }
         # ``availability`` is also how the proposal schema represents the
-        # harmless question "vocÃªs fazem este serviÃ§o?". The active,
+        # harmless question "vocês fazem este serviço?". The active,
         # published branch is authoritative evidence that the service is
         # offered, but it must not authorize schedule/slot availability.
         # Expand evidence only for the exact boolean service-existence claim;
@@ -833,8 +833,8 @@ def _question_already_asked(question: str, text: str) -> bool:
     question got silently appended a second time in the same message.
     Content-word overlap alone (first attempt at this fix, same day) still
     missed a short question whose *only* real content word is exactly the
-    one that gets personalized away (e.g. "Qual Ã© a cor do veÃ­culo?" ->
-    "...a cor do seu Onix?" -- "veÃ­culo" is the one content word, and it's
+    one that gets personalized away (e.g. "Qual é a cor do veículo?" ->
+    "...a cor do seu Onix?" -- "veículo" is the one content word, and it's
     gone). Matching contiguous character runs between the two folded
     strings catches that: the shared prefix/suffix around the swapped word
     still accounts for most of the question's length, even when word-level
@@ -922,4 +922,3 @@ def validate_natural_summary(reply: str, *, informed_values: list[str]) -> bool:
         if candidate and candidate not in folded:
             return False
     return True
-

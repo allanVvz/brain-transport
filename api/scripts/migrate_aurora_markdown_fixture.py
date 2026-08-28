@@ -1,4 +1,4 @@
-﻿"""One-time deterministic migration for the Aurora Graph JSON fixture."""
+"""One-time deterministic migration for the Aurora Graph JSON fixture."""
 from __future__ import annotations
 
 import json
@@ -45,4 +45,3 @@ def migrate(path: Path = FIXTURE) -> dict:
 
 if __name__ == "__main__":
     print(migrate())
-

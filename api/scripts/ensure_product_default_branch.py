@@ -1,4 +1,4 @@
-﻿"""Create the pending Copy -> FAQ branch required for existing products.
+"""Create the pending Copy -> FAQ branch required for existing products.
 
 This is idempotent and intentionally does not create Offers or approve/embed
 FAQs.  It is useful after importing a legacy catalog into the canonical graph.
@@ -97,4 +97,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

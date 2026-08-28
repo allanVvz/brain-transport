@@ -1,4 +1,4 @@
-﻿from schemas.context import Context
+from schemas.context import Context
 
 _INTENT_SCORES = {
     "quer_comprar": 40,
@@ -110,4 +110,3 @@ def decide(ctx: Context) -> str:
         return "CLOSER"
 
     return route
-

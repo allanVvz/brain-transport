@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 knowledge_graph: lightweight semantic graph layer over knowledge_items / kb_entries.
 
@@ -6,7 +6,7 @@ Responsibilities:
 - Keep a normalized graph of personas, products, campaigns, faqs, copies,
   assets, rules, etc. via knowledge_nodes + knowledge_edges (migration 008).
 - Bootstrap nodes/edges from synced vault items so the existing flow
-  (vault â†’ knowledge_items â†’ kb_entries) continues to work unchanged.
+  (vault → knowledge_items → kb_entries) continues to work unchanged.
 - Resolve a "chat context": given a lead's recent messages, find related
   products/campaigns/assets via term matching + 1-hop neighbourhood.
 
@@ -31,7 +31,7 @@ logger = logging.getLogger("knowledge_graph")
 # knowledge item metadata/frontmatter and from nodes that already exist.
 _TOPIC_NODE_TYPES = {"product", "offer", "campaign", "brand", "entity", "persona", "audience"}
 
-# Map content_type â†’ node_type for items mirrored into the graph.
+# Map content_type → node_type for items mirrored into the graph.
 _CONTENT_TYPE_TO_NODE: dict[str, str] = {
     "faq":      "faq",
     "copy":     "copy",
@@ -57,12 +57,12 @@ _PENDING_ITEM_STATUSES = {"pending", "needs_persona", "needs_category", "draft"}
 
 # Hierarchy levels for graph layout. Mirrors the operator-facing tree:
 #   Persona (0)
-#     â”œâ”€â”€ Briefing / Brand / Campaign (10 â€” top of any capture)
-#     â”‚       â””â”€â”€ Audience (20)
-#     â”‚             â””â”€â”€ Product / Entity (30)
-#     â”‚                   â”œâ”€â”€ Copy / FAQ / Asset (40)
-#     â”‚                   â”œâ”€â”€ Tone / Rule (40 â€” sibling concerns)
-#     â”‚                   â””â”€â”€ Embedded RAG (50, only after approval)
+#     ├── Briefing / Brand / Campaign (10 — top of any capture)
+#     │       └── Audience (20)
+#     │             └── Product / Entity (30)
+#     │                   ├── Copy / FAQ / Asset (40)
+#     │                   ├── Tone / Rule (40 — sibling concerns)
+#     │                   └── Embedded RAG (50, only after approval)
 # Importance scales independently of level so primary types (briefing,
 # product) rank above utility nodes (tag, mention).
 _NODE_HIERARCHY_DEFAULTS: dict[str, tuple[int, float]] = {
@@ -164,7 +164,7 @@ def semantic_edge_metadata(
 
 # Default relation_type used when a parent_slug is provided but no explicit
 # relation. Pair = (parent_node_type, child_node_type). Fallback is "contains".
-# Edge direction is always parent â†’ child (source = parent, target = child).
+# Edge direction is always parent → child (source = parent, target = child).
 _DEFAULT_PARENT_RELATION: dict[tuple[str, str], str] = {
     ("brand", "briefing"): "contains",
     ("brand", "campaign"): "contains",
@@ -204,7 +204,7 @@ _DEFAULT_PARENT_RELATION: dict[tuple[str, str], str] = {
 }
 
 
-# â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Helpers ───────────────────────────────────────────────────────────────
 
 def _slugify(value: str) -> str:
     s = (value or "").strip().lower()
@@ -298,9 +298,9 @@ def _tipo_to_node_type(tipo: str) -> str:
         "offer": "offer",
         "offers": "offer",
         "opcao": "offer",
-        "opÃ§Ã£o": "offer",
+        "opção": "offer",
         "variacao": "offer",
-        "variaÃ§Ã£o": "offer",
+        "variação": "offer",
         "product_variant": "offer",
         "purchase_option": "offer",
         "faq": "faq",
@@ -938,7 +938,7 @@ def _persona_id_from_slug(persona_slug_or_id: Optional[str]) -> Optional[str]:
     return p.get("id") if p else None
 
 
-# â”€â”€ Canonical nodes (idempotent) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Canonical nodes (idempotent) ──────────────────────────────────────────
 
 def ensure_canonical_for_persona(persona_id: Optional[str]) -> dict:
     """Legacy no-op.
@@ -957,7 +957,7 @@ def rebuild_graph_for_persona(
     """Re-run bootstrap_from_item for every existing knowledge_items + kb_entries
     row tied to a persona (or globally when persona_id is None).
 
-    Idempotent â€” existing nodes/edges are preserved by the upsert keys, and
+    Idempotent — existing nodes/edges are preserved by the upsert keys, and
     bootstrap is fully driven by the source data (no client-specific seeds).
 
     Used after migration 008 is applied or whenever the graph drifts from
@@ -1035,7 +1035,7 @@ def rebuild_graph_for_persona(
     return counts
 
 
-# â”€â”€ Bootstrap from a synced item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Bootstrap from a synced item ──────────────────────────────────────────
 
 def _gather_blob(item: dict, frontmatter: dict, body: str) -> str:
     """Concatenate every field that may carry product/campaign hints."""
@@ -1353,7 +1353,7 @@ def bootstrap_from_item(
         # 1) Mirror node for the item itself.
         content_type = (item.get("content_type") or "").lower()
         node_type = _CONTENT_TYPE_TO_NODE.get(content_type, source_table.rstrip("s"))
-        # node_type fallback: "knowledge_items" â†’ "knowledge_item", "kb_entries" â†’ "kb_entrie"
+        # node_type fallback: "knowledge_items" → "knowledge_item", "kb_entries" → "kb_entrie"
         if node_type == "knowledge_item" or node_type == "kb_entrie":
             node_type = "knowledge_item" if source_table == "knowledge_items" else "kb_entry"
 
@@ -1390,11 +1390,11 @@ def bootstrap_from_item(
             **_hierarchy_fields(node_type, meta, confidence=item.get("confidence")),
         })
         if not mirror:
-            return None  # graph tables missing â€” silently skip, sync still works
+            return None  # graph tables missing — silently skip, sync still works
 
         # 2a) Hierarchical parent (Sofia provides metadata.parent_slug).
         # When present and resolvable, this becomes the primary_tree edge so
-        # the operator's hierarchical intent (brand â†’ campaign â†’ product â†’ faq)
+        # the operator's hierarchical intent (brand → campaign → product → faq)
         # is preserved instead of every node hanging off the persona root.
         parent_slug_raw = fm.get("parent_slug")
         parent_type_hint = (fm.get("parent_type") or "").strip().lower() or None
@@ -1420,7 +1420,7 @@ def bootstrap_from_item(
         # 2b) Persona fallback. persona_id is the membership source of truth;
         # a visual edge is only needed for the first real node below persona.
         # primary_tree=true is set ONLY when there is no explicit hierarchical
-        # parent above â€” otherwise the depth walker would prefer the persona
+        # parent above — otherwise the depth walker would prefer the persona
         # over the real parent and the tree would look flat again.
         if persona_id:
             persona_node = _ensure_persona_root(persona_id)
@@ -1442,10 +1442,10 @@ def bootstrap_from_item(
                     ),
                 )
 
-        # 2c) Hierarchical parent edge (parent â†’ mirror). Marked as the
+        # 2c) Hierarchical parent edge (parent → mirror). Marked as the
         # canonical primary_tree edge so /knowledge/graph-data computes depth
         # correctly. If the parent isn't yet persisted (out-of-order save),
-        # the edge is skipped â€” re-running bootstrap after the parent appears
+        # the edge is skipped — re-running bootstrap after the parent appears
         # will create it (idempotent upsert).
         if used_explicit_parent:
             parent_type = (parent_node.get("node_type") or "").lower()
@@ -1536,7 +1536,7 @@ def bootstrap_from_item(
                 if ntype == "campaign":
                     relation = "supports_campaign"
                 elif ntype == "product":
-                    # campaign/product â†’ asset
+                    # campaign/product → asset
                     supabase_client.upsert_knowledge_edge(
                         target["id"], mirror["id"], "uses_asset", persona_id=persona_id,
                     )
@@ -1616,7 +1616,7 @@ def bootstrap_from_item(
         return None
 
 
-# â”€â”€ Chat context resolver â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Chat context resolver ─────────────────────────────────────────────────
 
 def _compute_graph_distances(
     seed_ids: set[str],
@@ -1702,7 +1702,7 @@ def _compute_graph_distances(
 
 def _candidate_terms_from_messages(messages: Iterable[dict], horizon_chars: int = 2000) -> list[str]:
     """Pull the most recent words/phrases from a conversation that look like
-    proper nouns or quoted product names. We're intentionally simple here â€”
+    proper nouns or quoted product names. We're intentionally simple here —
     actual matching is gated by the canonical product/campaign list anyway."""
     blob = " ".join(((m or {}).get("texto") or "") for m in messages)[-horizon_chars:]
     if not blob:
@@ -1710,7 +1710,7 @@ def _candidate_terms_from_messages(messages: Iterable[dict], horizon_chars: int 
     # Words >= 3 chars, lowercase, deduped, preserving order.
     seen: set[str] = set()
     out: list[str] = []
-    for token in re.findall(r"[A-Za-zÃ€-Ã¿0-9][A-Za-zÃ€-Ã¿0-9'-]{2,}", blob):
+    for token in re.findall(r"[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9'-]{2,}", blob):
         t = token.lower()
         if t in seen:
             continue
@@ -1733,7 +1733,7 @@ def _detect_terms(
     """
     user_terms: list[str] = []
     if user_text:
-        user_terms = re.findall(r"[A-Za-zÃ€-Ã¿0-9][A-Za-zÃ€-Ã¿0-9'-]{2,}", user_text.lower())
+        user_terms = re.findall(r"[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9'-]{2,}", user_text.lower())
     msg_terms = _candidate_terms_from_messages(messages)
 
     seen_lower: set[str] = set()
@@ -1808,11 +1808,11 @@ def _infer_persona_from_messages(
       2. Tokenize into candidate terms (same logic as _detect_terms).
       3. Match each term against ALL personas' knowledge_nodes (no scope).
       4. Score per-persona by counting matched nodes (weighted by node_type
-         priority â€” product/brand/campaign/entity > faq/copy > tag/mention).
+         priority — product/brand/campaign/entity > faq/copy > tag/mention).
       5. Return the persona_id whose share of total hits >= min_dominance and
          whose absolute hit count >= min_hits. Otherwise None.
 
-    This is intentionally conservative â€” when the conversation is ambiguous
+    This is intentionally conservative — when the conversation is ambiguous
     or short, we keep the safety block instead of guessing a persona and
     leaking another client's knowledge.
     """
@@ -1831,8 +1831,8 @@ def _infer_persona_from_messages(
     if not blob.strip():
         return None
 
-    # Tokenize same way _detect_terms does â€” but here we run global lookup.
-    raw_tokens = re.findall(r"[A-Za-zÃ€-Ã¿0-9][A-Za-zÃ€-Ã¿0-9'-]{2,}", blob.lower())
+    # Tokenize same way _detect_terms does — but here we run global lookup.
+    raw_tokens = re.findall(r"[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9'-]{2,}", blob.lower())
     if not raw_tokens:
         return None
     raw_blob = _fold(" ".join(raw_tokens))
@@ -1912,7 +1912,7 @@ def get_chat_context(
     persona_was_inferred = False
     if not persona_id and lead_ref:
         # Walk the graph: try to infer persona from message history. Only
-        # accepted when one persona dominates the matches â€” otherwise we
+        # accepted when one persona dominates the matches — otherwise we
         # keep the safety block to avoid leaking another client's knowledge.
         inferred = _infer_persona_from_messages(
             int(lead_ref),
@@ -1930,13 +1930,13 @@ def get_chat_context(
                 logger.warning("knowledge_graph: persona backfill failed for lead %s: %s", lead_ref, exc)
 
     if not persona_id:
-        # Sem persona definida (lead sem vÃ­nculo OU chamada sem escopo) o
-        # contexto nÃ£o pode ser global â€” devolverÃ­amos conhecimento de outro
+        # Sem persona definida (lead sem vínculo OU chamada sem escopo) o
+        # contexto não pode ser global — devolveríamos conhecimento de outro
         # cliente. Bloqueia explicitamente.
         reason = (
-            "Lead sem persona vinculada e conversa nÃ£o bate com nenhum cliente conhecido"
+            "Lead sem persona vinculada e conversa não bate com nenhum cliente conhecido"
             if lead_ref
-            else "Persona nÃ£o especificada"
+            else "Persona não especificada"
         )
         return {
             "query_terms": [],
@@ -2045,7 +2045,7 @@ def get_chat_context(
         if n.get("source_table") == "kb_entries"
         or n.get("node_type") in {"kb_entry", "faq", "copy"}
     ]
-    # Batch fetch â€” avoids N+1 round-trip per kb_entry node.
+    # Batch fetch — avoids N+1 round-trip per kb_entry node.
     kb_source_ids = [
         str(n["source_id"])
         for n in kb_entry_nodes
@@ -2133,7 +2133,7 @@ def get_chat_context(
         for n in seed_nodes.values()
     ]
 
-    # 6. Intent â€” simple keyword heuristic over the user text, then graph hits.
+    # 6. Intent — simple keyword heuristic over the user text, then graph hits.
     intent = _detect_intent(user_text or " ".join(((m or {}).get("texto") or "") for m in messages),
                             by_type, assets)
 
@@ -2149,12 +2149,12 @@ def get_chat_context(
         parts.append("Campanhas: " + ", ".join(campaigns))
     if assets:
         parts.append(f"{len(assets)} asset(s) relacionado(s)")
-    summary = " Â· ".join(parts)
+    summary = " · ".join(parts)
 
     validated_nodes = [n for n in nodes if n.get("validated")]
     unvalidated_nodes = [n for n in nodes if not n.get("validated")]
 
-    # 8. Similarity ranking â€” strictly by graph_distance, with type as tiebreak
+    # 8. Similarity ranking — strictly by graph_distance, with type as tiebreak
     # (product/campaign/faq/copy/asset before tag/mention). Seeds excluded.
     seed_id_set = set(seed_nodes.keys())
     type_priority = {"product": 0, "campaign": 1, "brand": 1, "faq": 2,
@@ -2306,7 +2306,7 @@ def with_operator_context(context: dict, *, limit: int = 12) -> dict:
 
 
 _INTENT_ASSET_KEYWORDS = re.compile(
-    r"\b(imagem|imagens|foto|fotos|asset|assets|m[iÃ­]dia|midia|banner|hero|story|catalog|catÃ¡logo|video|v[iÃ­]deo)\b",
+    r"\b(imagem|imagens|foto|fotos|asset|assets|m[ií]dia|midia|banner|hero|story|catalog|catálogo|video|v[ií]deo)\b",
     re.IGNORECASE,
 )
 
@@ -2315,11 +2315,11 @@ def _detect_intent(text: str, by_type: dict, assets: list[dict]) -> str:
     """Cheap rule-based intent classifier (no LLM).
 
     Order of precedence:
-      1. asset_request â€” user mentions media/images/etc
-      2. product_inquiry â€” there's at least one product node
-      3. campaign_inquiry â€” there's at least one campaign node
-      4. kb_lookup â€” only KB entries matched
-      5. fallback_text_search â€” nothing matched.
+      1. asset_request — user mentions media/images/etc
+      2. product_inquiry — there's at least one product node
+      3. campaign_inquiry — there's at least one campaign node
+      4. kb_lookup — only KB entries matched
+      5. fallback_text_search — nothing matched.
     """
     blob = (text or "").lower()
     if assets and _INTENT_ASSET_KEYWORDS.search(blob):
@@ -2337,4 +2337,3 @@ def _detect_intent(text: str, by_type: dict, assets: list[dict]) -> str:
         return "contains"
     if parent == "audience" and child == "product":
         return "offers_product"
-

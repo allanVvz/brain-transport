@@ -1,4 +1,4 @@
-﻿"""
+"""
 Vault sync service: scans the local Obsidian vault and creates knowledge_items
 with status='pending' for review in the Knowledge Validation queue.
 """
@@ -127,7 +127,7 @@ def delete_vault_relative_path(file_path: Optional[str], vault_path: Optional[st
     target.unlink()
     return True
 
-# Map vault folder names â†’ persona slugs
+# Map vault folder names → persona slugs
 _FOLDER_TO_SLUG: dict[str, str] = {
     "BAITA_CONVENIENCIA": "baita-conveniencia",
     "TOCK_FATAL": "tock-fatal",
@@ -493,7 +493,7 @@ def run_sync(vault_path: str = VAULT_PATH, persona_filter: Optional[str] = None)
         "imported_quarantined": 0,
         "skipped_legacy": 0,
     }
-    persona_cache: dict[str, Optional[str]] = {}  # slug â†’ id
+    persona_cache: dict[str, Optional[str]] = {}  # slug → id
 
     def _get_persona_id(slug: Optional[str]) -> Optional[str]:
         if not slug:
@@ -638,4 +638,3 @@ def run_sync(vault_path: str = VAULT_PATH, persona_filter: Optional[str] = None)
     })
     _emit("vault_sync_completed", entity_type="sync_run", entity_id=run_id, payload=counts)
     return {"run_id": run_id, **counts}
-

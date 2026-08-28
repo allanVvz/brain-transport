@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel
+from pydantic import BaseModel
 from typing import Optional, List, Dict
 
 
@@ -19,4 +19,3 @@ class PersonaUpdate(BaseModel):
     prompts: Optional[Dict[str, str]] = None
     config: Optional[Dict] = None
     catalog_url: Optional[str] = None
-

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 import uuid
@@ -207,4 +207,3 @@ class AgentHarnessRepository:
             level=level,
             source="agent_harness",
         )
-

@@ -1,4 +1,4 @@
-﻿"""Desfecho comercial da jornada, derivado em um lugar so.
+"""Desfecho comercial da jornada, derivado em um lugar so.
 
 `delivered`, `service_completed` e `cancelled` nao sao estados: os tres colapsam
 em `state='closed'` e so se distinguem por `metadata.closing_event`. A UI precisa
@@ -181,4 +181,3 @@ def lead_converted(lead: dict[str, Any] | None) -> bool:
     metadata = (lead or {}).get("metadata")
     metadata = metadata if isinstance(metadata, dict) else {}
     return bool(metadata.get("first_converted_at"))
-

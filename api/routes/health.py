@@ -1,4 +1,4 @@
-﻿import os
+import os
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -62,7 +62,7 @@ def health_storage():
     """Diagnostic for /assets/upload: which Supabase project the API actually
     talks to, and whether the required buckets are visible to it.
 
-    Useful when an upload returns "Bucket not found" â€” this endpoint pins down
+    Useful when an upload returns "Bucket not found" — this endpoint pins down
     if the API is hitting a different project than expected (env mix-up) or if
     the bucket truly is missing from the right project.
     """
@@ -92,4 +92,3 @@ def health_storage():
     }
     status_code = 200 if payload["ok"] else 503
     return JSONResponse(payload, status_code=status_code)
-

@@ -1,4 +1,4 @@
-﻿from services import n8n_client, supabase_client
+from services import n8n_client, supabase_client
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -12,9 +12,9 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
             "persona_id": persona_id,
             "severity": "critical",
             "category": "reliability",
-            "title": f"Taxa de erro n8n alta: {error_rate:.1%} nas Ãºltimas 24h",
-            "description": f"{error_rate:.1%} das execuÃ§Ãµes falharam. Threshold aceitÃ¡vel: 10%.",
-            "recommendation": "Verificar logs do n8n. PossÃ­vel problema em node de Airtable ou Supabase.",
+            "title": f"Taxa de erro n8n alta: {error_rate:.1%} nas últimas 24h",
+            "description": f"{error_rate:.1%} das execuções falharam. Threshold aceitável: 10%.",
+            "recommendation": "Verificar logs do n8n. Possível problema em node de Airtable ou Supabase.",
             "affected_component": "n8n executions",
             "score_impact": -20,
         })
@@ -25,7 +25,7 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
             "category": "reliability",
             "title": f"Taxa de erro n8n elevada: {error_rate:.1%}",
             "description": "Acima do threshold de 5%.",
-            "recommendation": "Monitorar. Verificar se Ã© intermitente ou sistemÃ¡tico.",
+            "recommendation": "Monitorar. Verificar se é intermitente ou sistemático.",
             "affected_component": "n8n executions",
             "score_impact": -8,
         })
@@ -40,9 +40,9 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
                     "persona_id": persona_id,
                     "severity": "warning",
                     "category": "performance",
-                    "title": f"LatÃªncia mÃ©dia alta: {avg_ms/1000:.1f}s por execuÃ§Ã£o",
-                    "description": "ExecuÃ§Ãµes lentas impactam tempo de resposta ao lead.",
-                    "recommendation": "Identificar nodes lentos. Classifier Agent e SDR/Closer sÃ£o os candidatos principais.",
+                    "title": f"Latência média alta: {avg_ms/1000:.1f}s por execução",
+                    "description": "Execuções lentas impactam tempo de resposta ao lead.",
+                    "recommendation": "Identificar nodes lentos. Classifier Agent e SDR/Closer são os candidatos principais.",
                     "affected_component": "n8n workflow latency",
                     "score_impact": -10,
                 })
@@ -57,9 +57,9 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
                         "persona_id": persona_id,
                         "severity": "critical",
                         "category": "reliability",
-                        "title": f"Nenhuma execuÃ§Ã£o n8n nas Ãºltimas {gap.seconds//3600}h",
+                        "title": f"Nenhuma execução n8n nas últimas {gap.seconds//3600}h",
                         "description": "O fluxo principal pode estar parado.",
-                        "recommendation": "Verificar se o trigger WhatsApp estÃ¡ ativo e se o n8n estÃ¡ online.",
+                        "recommendation": "Verificar se o trigger WhatsApp está ativo e se o n8n está online.",
                         "affected_component": "WhatsApp Trigger",
                         "score_impact": -25,
                     })
@@ -67,4 +67,3 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
                 pass
 
     return insights
-

@@ -1,4 +1,4 @@
-﻿"""Generic graph-backed deterministic appointment conversation engine."""
+"""Generic graph-backed deterministic appointment conversation engine."""
 from __future__ import annotations
 
 import re
@@ -44,8 +44,8 @@ def _missing(request: dict[str, Any], required: Iterable[str]) -> list[str]:
 
 def _extract_name(text: str) -> str | None:
     match = re.search(
-        r"\b(?:meu nome (?:e|Ã©)|me chamo|sou o|sou a)\s+"
-        r"([A-Za-zÃ€-Ã¿]{2,}(?:\s+[A-Za-zÃ€-Ã¿]{2,}){0,3})",
+        r"\b(?:meu nome (?:e|é)|me chamo|sou o|sou a)\s+"
+        r"([A-Za-zÀ-ÿ]{2,}(?:\s+[A-Za-zÀ-ÿ]{2,}){0,3})",
         text,
         re.IGNORECASE,
     )
@@ -57,7 +57,7 @@ def _extract_date(text: str) -> str | None:
     if match:
         return match.group(1)
     match = re.search(
-        r"\b(?:dia|data)\s+([A-Za-zÃ€-Ã¿0-9][A-Za-zÃ€-Ã¿0-9 /-]{1,20})",
+        r"\b(?:dia|data)\s+([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 /-]{1,20})",
         text,
         re.IGNORECASE,
     )
@@ -67,9 +67,9 @@ def _extract_date(text: str) -> str | None:
 def _extract_window(text: str) -> str | None:
     normalized = _norm(text)
     for term, value in (
-        ("de manha", "manhÃ£"),
-        ("pela manha", "manhÃ£"),
-        ("manha", "manhÃ£"),
+        ("de manha", "manhã"),
+        ("pela manha", "manhã"),
+        ("manha", "manhã"),
         ("de tarde", "tarde"),
         ("pela tarde", "tarde"),
         ("tarde", "tarde"),
@@ -79,7 +79,7 @@ def _extract_window(text: str) -> str | None:
     ):
         if term in normalized:
             return value
-    match = re.search(r"\b(?:as|Ã s)\s*(\d{1,2}(?::\d{2})?)\b", text, re.IGNORECASE)
+    match = re.search(r"\b(?:as|às)\s*(\d{1,2}(?::\d{2})?)\b", text, re.IGNORECASE)
     return match.group(1) if match else None
 
 
@@ -92,7 +92,7 @@ def _extract_size(text: str) -> str | None:
         ("picape", "picape"),
         ("pickup", "picape"),
         ("compacto", "compacto"),
-        ("medio", "mÃ©dio"),
+        ("medio", "médio"),
         ("grande", "grande"),
     )
     return next((value for alias, value in aliases if re.search(rf"\b{alias}\b", normalized)), None)
@@ -220,7 +220,7 @@ class DeterministicAppointment:
         if not plain or not expected or request.get(expected):
             return
         if expected == "nome_cliente":
-            if re.fullmatch(r"[A-Za-zÃ€-Ã¿]{2,}(?:\s+[A-Za-zÃ€-Ã¿]{2,}){0,3}", plain):
+            if re.fullmatch(r"[A-Za-zÀ-ÿ]{2,}(?:\s+[A-Za-zÀ-ÿ]{2,}){0,3}", plain):
                 request[expected] = plain
         elif expected == "vehicle_size":
             if size:
@@ -243,7 +243,7 @@ class DeterministicAppointment:
             fact = self._fact(product)
             qualifier = "." if fact.endswith(".") else ""
             lines.append(f"- {fact}{qualifier}")
-        return self._text("cabecalho_servicos", "ServiÃ§os disponÃ­veis:") + "\n" + "\n".join(lines)
+        return self._text("cabecalho_servicos", "Serviços disponíveis:") + "\n" + "\n".join(lines)
 
     def handle(
         self,
@@ -261,8 +261,8 @@ class DeterministicAppointment:
             # Every other transition into "handoff" in this function passes
             # handoff=True (propagates to response.handoff_required, which
             # is what keeps ai_paused set and the lead visibly escalated).
-            # This branch â€” messages arriving *after* the lead is already
-            # in the sticky handoff state â€” used AppointmentResult's
+            # This branch — messages arriving *after* the lead is already
+            # in the sticky handoff state — used AppointmentResult's
             # default handoff=False, so the worker treated a silently
             # dropped message as a normal "sent" turn instead of
             # re-confirming the lead needs a human. Confirmed live
@@ -279,7 +279,7 @@ class DeterministicAppointment:
             return AppointmentResult(
                 self._text(
                     "encaminhamento_excepcional",
-                    "Vou encaminhar sua solicitaÃ§Ã£o para a equipe responsÃ¡vel.",
+                    "Vou encaminhar sua solicitação para a equipe responsável.",
                 ),
                 "exceptional_support",
                 state,
@@ -371,13 +371,13 @@ class DeterministicAppointment:
             state["conversation_state"] = "collecting"
             if not missing:
                 state["conversation_state"] = "handoff"
-                fact = self._fact(product) if product else "O serviÃ§o solicitado"
+                fact = self._fact(product) if product else "O serviço solicitado"
                 if product:
                     fact = f"A {fact[:1].lower()}{fact[1:]}"
                 reply = f"{fact}. " + self._text(
                     "complemento_confirmacao",
-                    "Registrei sua preferÃªncia; a equipe confirmarÃ¡ "
-                    "o valor final e o horÃ¡rio.",
+                    "Registrei sua preferência; a equipe confirmará "
+                    "o valor final e o horário.",
                 )
                 return AppointmentResult(
                     reply,
@@ -414,7 +414,7 @@ class DeterministicAppointment:
 
         if greeting:
             return AppointmentResult(
-                self.catalog.greeting or "OlÃ¡. Como posso ajudar?",
+                self.catalog.greeting or "Olá. Como posso ajudar?",
                 "greeting",
                 state,
             )
@@ -429,7 +429,7 @@ class DeterministicAppointment:
                 return AppointmentResult(
                     self._text(
                         "preco_humano",
-                        "O valor Ã© definido por uma pessoa da equipe. Vou "
+                        "O valor é definido por uma pessoa da equipe. Vou "
                         "encaminhar sua conversa para o atendimento.",
                     ),
                     "consult_price",
@@ -483,8 +483,8 @@ class DeterministicAppointment:
             return AppointmentResult(
                 self._text(
                     "encaminhamento_duvida_persistente",
-                    "JÃ¡ chamei a equipe para continuar com vocÃª. Se puder, me "
-                    "diga seu nome, o serviÃ§o que procura e o modelo do carro "
+                    "Já chamei a equipe para continuar com você. Se puder, me "
+                    "diga seu nome, o serviço que procura e o modelo do carro "
                     "enquanto aguarda.",
                 ),
                 "ununderstood",
@@ -496,10 +496,9 @@ class DeterministicAppointment:
             self._text(
                 "esclarecimento_duvida",
                 "Vou chamar a equipe para te ajudar direitinho nisso. "
-                "Enquanto isso, me conta seu nome, o serviÃ§o que vocÃª procura "
+                "Enquanto isso, me conta seu nome, o serviço que você procura "
                 "e o modelo do carro?",
             ),
             "ununderstood",
             state,
         )
-

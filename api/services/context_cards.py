@@ -1,4 +1,4 @@
-﻿"""One explainable Graph JSON context package shared by model and operator UI."""
+"""One explainable Graph JSON context package shared by model and operator UI."""
 from __future__ import annotations
 
 import hashlib
@@ -753,4 +753,3 @@ def response_context(
         "current_graph_version": current_version,
         "current_graph_checksum": current_checksum,
     }
-

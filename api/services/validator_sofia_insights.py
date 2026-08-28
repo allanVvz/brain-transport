@@ -1,4 +1,4 @@
-﻿"""Convert WA Validator evidence into reviewable Sofia authoring proposals.
+"""Convert WA Validator evidence into reviewable Sofia authoring proposals.
 
 This module is pure. It never writes graph state, calls a publisher, or turns
 an observed failure into an invented business fact.
@@ -17,34 +17,34 @@ def _proposal_kind(topic: str) -> tuple[str, list[str], str, str]:
             "branch_resolution_review",
             ["audience", "rule"],
             "graph.create_card_draft",
-            "Revisar aliases e a polÃ­tica declarativa de seleÃ§Ã£o do galho.",
+            "Revisar aliases e a política declarativa de seleção do galho.",
         )
     if any(value in folded for value in ("missing_field", "question", "repetition")):
         return (
             "qualification_contract_review",
             ["faq", "rule"],
             "graph.create_card_draft",
-            "Revisar field, question_node_id e orÃ§amento de repetiÃ§Ã£o no contrato publicado.",
+            "Revisar field, question_node_id e orçamento de repetição no contrato publicado.",
         )
     if any(value in folded for value in ("claim", "evidence", "knowledge")):
         return (
             "knowledge_gap",
             ["knowledge_item", "faq"],
             "graph.create_card_draft",
-            "Solicitar fonte humana; criar conteÃºdo apenas como pending_source/pending_validation.",
+            "Solicitar fonte humana; criar conteúdo apenas como pending_source/pending_validation.",
         )
     if any(value in folded for value in ("lineage", "checksum", "publication")):
         return (
             "publication_drift",
             [],
             "graph.validate_patch",
-            "Reconciliar versÃ£o/checksum; nÃ£o alterar conteÃºdo para mascarar drift.",
+            "Reconciliar versão/checksum; não alterar conteúdo para mascarar drift.",
         )
     return (
         "runtime_or_instrumentation_review",
         ["rule"],
         "graph.validate_patch",
-        "Localizar a falha entre runtime, proof e contrato antes de propor uma ediÃ§Ã£o.",
+        "Localizar a falha entre runtime, proof e contrato antes de propor uma edição.",
     )
 
 
@@ -80,4 +80,3 @@ def build_sofia_review(
         "tool_sequence": ["graph.create_card_draft", "graph.validate_patch"],
         "proposals": proposals,
     }
-

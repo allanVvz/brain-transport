@@ -1,6 +1,6 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
-Sofia tools â€” surface deterministica para mutacao incremental do
+Sofia tools — surface deterministica para mutacao incremental do
 knowledge_plan que vive em `session.normalized_plan`.
 
 Antes desta camada, cada mensagem operacional disparava regeneracao
@@ -14,14 +14,14 @@ Cada handler:
     provider (OpenAI/Anthropic tool-use);
   * muta o normalized_plan IN PLACE;
   * roda normalize_validate_summarize_plan em seguida e armazena o
-    plan_state via _store_plan_state â€” o front recebe o estado novo na
+    plan_state via _store_plan_state — o front recebe o estado novo na
     proxima resposta de /kb-intake/message;
   * devolve um dict serializavel com {ok, summary, errors, ...} que o
     modelo le como tool_result para decidir o proximo passo.
 
 A schema JSON publicada em SOFIA_TOOLS_SCHEMA segue o formato compativel
 com Anthropic tools (tambem aceito pela OpenAI Responses/Chat Completions
-APIs com transformacao simples â€” vide model_router.messages_create).
+APIs com transformacao simples — vide model_router.messages_create).
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ from services.agent_tool_registry import ToolManifest, ToolRegistry
 
 
 def _kb():
-    """Atalho preguicoso para o modulo do servico â€” evita import circular."""
+    """Atalho preguicoso para o modulo do servico — evita import circular."""
     from services import kb_intake_service as _service
     return _service
 
@@ -134,7 +134,7 @@ def _violates_hierarchy(plan: dict, content_type: str, parent_slug: Optional[str
         return None  # lateral
     if child == "persona":
         if parent_slug:
-            return "persona e raiz da arvore â€” nao deve ter parent_slug"
+            return "persona e raiz da arvore — nao deve ter parent_slug"
         return None
     if not parent_slug:
         expected = _canonical_parent_for(child)
@@ -146,7 +146,7 @@ def _violates_hierarchy(plan: dict, content_type: str, parent_slug: Optional[str
     }
     parent_entry = entries_by_slug.get(str(parent_slug).strip().lower())
     if not parent_entry:
-        return f"parent_slug '{parent_slug}' nao existe no plano â€” crie o pai antes"
+        return f"parent_slug '{parent_slug}' nao existe no plano — crie o pai antes"
     parent_type = knowledge_taxonomy.canonical_node_type(parent_entry.get("content_type")) or parent_entry.get("content_type")
     if not knowledge_taxonomy.is_primary_edge_allowed(parent_type, child, ""):
         expected = _canonical_parent_for(child) or "?"
@@ -163,7 +163,7 @@ def tool_create_node(session: dict, **args: Any) -> dict:
     Enforce canonical fractal hierarchy: persona->brand->briefing->campaign->
     audience->product_group->product->offer->copy->{faq,gallery}. Asset is
     lateral. Violations short-circuit with an explicit error so Sofia can
-    fix the chain before continuing â€” keeps the tree top-down and clean.
+    fix the chain before continuing — keeps the tree top-down and clean.
     """
     kb = _kb()
     content_type = str(args.get("content_type") or "").strip().lower()
@@ -277,10 +277,10 @@ def tool_delete_node(session: dict, **args: Any) -> dict:
 
 
 def tool_set_expansion_policy(session: dict, **_args: Any) -> dict:
-    """DEPRECATED. A polÃ­tica de expansÃ£o piramidal foi removida.
+    """DEPRECATED. A política de expansão piramidal foi removida.
 
-    Mantida como stub para nÃ£o quebrar o tool-loop caso o modelo ainda
-    invoque (cache do prompt anterior, plano legado etc.). NÃ£o muta nada
+    Mantida como stub para não quebrar o tool-loop caso o modelo ainda
+    invoque (cache do prompt anterior, plano legado etc.). Não muta nada
     e retorna ok=False com mensagem clara.
     """
     return _err(
@@ -293,16 +293,16 @@ def tool_generate_faq_from_branch(session: dict, **args: Any) -> dict:
     """Gera entries de FAQ reais lendo o galho ancestral do `parent_slug` no plano.
 
     Em modo CRIAR o galho fica no `session.normalized_plan`. Esta tool:
-      * Caminha do `parent_slug` atÃ© a persona via `metadata.parent_slug`,
-        coletando tÃ­tulo/content/tags.
-      * Calcula `branch_hash` (sha256 do dump canÃ´nico) para curadoria.
+      * Caminha do `parent_slug` até a persona via `metadata.parent_slug`,
+        coletando título/content/tags.
+      * Calcula `branch_hash` (sha256 do dump canônico) para curadoria.
       * Chama `services.faq_bulk_generator.generate_faqs_for_chain` para
-        gerar as perguntas/respostas de verdade (LLM, grounded sÃ³ no que
-        estÃ¡ no galho, com o contexto das skills de tom jÃ¡ validadas no
-        repositÃ³rio) e cria uma entry `faq` por par, cada uma com
+        gerar as perguntas/respostas de verdade (LLM, grounded só no que
+        está no galho, com o contexto das skills de tom já validadas no
+        repositório) e cria uma entry `faq` por par, cada uma com
         `status='pendente_validacao'` (curadoria continua exigida antes de
-        publicar). Se a geraÃ§Ã£o falhar (LLM indisponÃ­vel, saÃ­da
-        inaparseÃ¡vel), cai de volta para uma Ãºnica entry placeholder, como
+        publicar). Se a geração falhar (LLM indisponível, saída
+        inaparseável), cai de volta para uma única entry placeholder, como
         antes.
     """
     import hashlib
@@ -391,12 +391,12 @@ def tool_generate_faq_from_branch(session: dict, **args: Any) -> dict:
             created_slugs.append(slug)
         message = f"{len(created_slugs)} FAQs geradas para o galho de {parent_slug}"
     else:
-        # LLM indisponÃ­vel ou saÃ­da inaparseÃ¡vel -- volta pro placeholder
+        # LLM indisponível ou saída inaparseável -- volta pro placeholder
         # antigo em vez de deixar o operador sem nada.
         slug = _next_slug(base_slug)
-        faq_title = f"FAQ â€” {base_title}"
+        faq_title = f"FAQ — {base_title}"
         placeholder_md = (
-            "<!-- GeraÃ§Ã£o automÃ¡tica indisponÃ­vel no momento; revise manualmente. -->\n"
+            "<!-- Geração automática indisponível no momento; revise manualmente. -->\n"
             f"## {faq_title}\n\nPerguntas pendentes para o galho:\n"
             + "\n".join(f"- {c.get('content_type')}: {c.get('title')}" for c in chain)
         )
@@ -417,7 +417,7 @@ def tool_generate_faq_from_branch(session: dict, **args: Any) -> dict:
         })
         plan["entries"].append(entry)
         created_slugs.append(slug)
-        message = f"GeraÃ§Ã£o automÃ¡tica falhou; criei um placeholder para o galho de {parent_slug}"
+        message = f"Geração automática falhou; criei um placeholder para o galho de {parent_slug}"
 
     plan_state = _commit(
         session, plan, last_change=f"tool:generate_faq_from_branch {parent_slug}",
@@ -432,7 +432,7 @@ def tool_generate_faq_from_branch(session: dict, **args: Any) -> dict:
 
 
 def tool_validate_hierarchy(session: dict, **args: Any) -> dict:
-    """Valida que o `slug` estÃ¡ em um caminho canÃ´nico do grafo fractal."""
+    """Valida que o `slug` está em um caminho canônico do grafo fractal."""
     from services import knowledge_taxonomy
 
     slug = str(args.get("slug") or "").strip().lower()
@@ -484,12 +484,12 @@ def tool_attach_session_asset(session: dict, **args: Any) -> dict:
     """Cria uma entry asset a partir de um arquivo ja em session.asset_readings.
 
     Args:
-      reading_index (int) â€” indice em session.asset_readings (default 0,
+      reading_index (int) — indice em session.asset_readings (default 0,
         ou seja o ultimo upload se a session estiver mantendo so o mais
         recente).
-      parent_slug (str) â€” slug do produto/oferta pai. Obrigatorio.
-      asset_function (str?) â€” campo metadata.asset_function.
-      title (str?) â€” sobrescreve o titulo derivado do filename.
+      parent_slug (str) — slug do produto/oferta pai. Obrigatorio.
+      asset_function (str?) — campo metadata.asset_function.
+      title (str?) — sobrescreve o titulo derivado do filename.
     """
     parent_slug = str(args.get("parent_slug") or "").strip()
     if not parent_slug:
@@ -684,7 +684,7 @@ _LEGACY_TOOLS_SCHEMA_UNUSED: list[dict] = [
     },
     {
         "name": "set_expansion_policy",
-        "description": "DEPRECATED. A politica de expansao piramidal foi removida. Nao chame esta tool â€” use generate_faq_from_branch para FAQ e crie os demais nodes apenas sob pedido do operador.",
+        "description": "DEPRECATED. A politica de expansao piramidal foi removida. Nao chame esta tool — use generate_faq_from_branch para FAQ e crie os demais nodes apenas sob pedido do operador.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -729,7 +729,7 @@ _LEGACY_TOOLS_SCHEMA_UNUSED: list[dict] = [
         "name": "attach_session_asset",
         "description": (
             "Quando o operador acaba de subir um arquivo via paperclip, cria a entry asset no plano "
-            "conectada ao produto/oferta pai. Le session.asset_readings â€” nao inventa URL."
+            "conectada ao produto/oferta pai. Le session.asset_readings — nao inventa URL."
         ),
         "input_schema": {
             "type": "object",
@@ -874,4 +874,3 @@ def dispatch_tool_call(session: dict, name: str, arguments: dict | None) -> dict
         return manifest.invoke(session, arguments if isinstance(arguments, dict) else {})
     except Exception as exc:
         return _err(f"erro ao executar {name}: {exc}", exception=type(exc).__name__)
-

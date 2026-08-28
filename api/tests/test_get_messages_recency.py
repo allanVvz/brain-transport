@@ -1,7 +1,7 @@
-﻿"""Regression test for the 2026-08-02 stale-history bug in get_messages().
+"""Regression test for the 2026-08-02 stale-history bug in get_messages().
 
 get_messages(limit=N) used to query messages.order(created_at, id, desc=False)
-then .limit(N) â€” for any lead with more than N total messages, that returns
+then .limit(N) — for any lead with more than N total messages, that returns
 the OLDEST N messages, not the most recent N, even though every caller
 (AI context building, the WhatsApp bot-echo-loop guard, chat history APIs)
 expects "recent". Confirmed live: a 143-message test lead had its echo-loop
@@ -74,4 +74,3 @@ def test_get_messages_queries_descending_so_limit_keeps_the_newest_rows(monkeypa
     assert ("id", True) in fake_client.last_query.order_calls
     # _sort_messages_for_chat must still return chronological (ascending) order.
     assert [row["id"] for row in result] == [299, 300]
-

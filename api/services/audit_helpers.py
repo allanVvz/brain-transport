@@ -1,6 +1,6 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
-Audit helpers â€” utilities for instrumenting mutation handlers with consistent
+Audit helpers — utilities for instrumenting mutation handlers with consistent
 event payloads. Used by routes/assets.py, routes/graph.py and routes/knowledge.py
 to emit `system_events` rows with a stable shape: actor + before/after + diff +
 context.
@@ -40,7 +40,7 @@ def summarize_diff(
 
     Output: {"changed": {<key>: {"before": x, "after": y}}, "unchanged_count": n}.
     Keys whose values are equal (after normalize) are omitted from `changed`.
-    Nested dicts/lists are compared as serialized JSON â€” shallow compare.
+    Nested dicts/lists are compared as serialized JSON — shallow compare.
     """
     before = before or {}
     after = after or {}
@@ -77,4 +77,3 @@ def current_actor(request) -> dict:
         }
     except Exception:
         return {"user_id": None, "email": None, "role": None}
-

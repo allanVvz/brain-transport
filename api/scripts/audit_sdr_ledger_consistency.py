@@ -1,4 +1,4 @@
-﻿"""Read-only manifest for active SDR branches without a referential service.
+"""Read-only manifest for active SDR branches without a referential service.
 
 This script never mutates data. The returned expected revision can be supplied
 to ``repair_conversation_ledger_branch_v1(..., p_apply=true)`` only in a
@@ -77,4 +77,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

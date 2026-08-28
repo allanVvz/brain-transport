@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import json
@@ -119,4 +119,3 @@ class ToolRegistry:
     def capabilities(self) -> list[dict[str, Any]]:
         self.validate()
         return [item.capability() for item in self.all(model_visible_only=True)]
-

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import json
@@ -638,7 +638,7 @@ HARNESS_TOOL_REGISTRY = ToolRegistry([
     _manifest("imports.preview", "campaign_operator", ImportPreviewInput, preview_import, effect=ToolEffect.DRAFT, risk=ToolRisk.MEDIUM, permission="edit", description="Gera preview de import sem gravar.", sensitive=("contacts", "phone")),
     _manifest("imports.create", "campaign_operator", ImportCreateInput, create_import, effect=ToolEffect.WRITE, risk=ToolRisk.HIGH, permission="edit", description="Cria import idempotente e consentimentos, sem projetar telefones no Graph.", sensitive=("contacts", "phone")),
     _manifest("audiences.resolve_semantic_group", "campaign_operator", ResolveAudienceInput, resolve_semantic_group, effect=ToolEffect.DRAFT, risk=ToolRisk.LOW, permission="view", description="Seleciona grupo semantico existente ou propoe um novo."),
-    _manifest("audiences.create_semantic_group", "campaign_operator", CreateAudienceInput, create_semantic_group, effect=ToolEffect.WRITE, risk=ToolRisk.HIGH, permission="edit", description="Cria audience semantica e edges canÃ´nicas da Persona."),
+    _manifest("audiences.create_semantic_group", "campaign_operator", CreateAudienceInput, create_semantic_group, effect=ToolEffect.WRITE, risk=ToolRisk.HIGH, permission="edit", description="Cria audience semantica e edges canônicas da Persona."),
     _manifest("consents.resolve", "campaign_operator", ResolveConsentInput, resolve_consents, effect=ToolEffect.READ, risk=ToolRisk.MEDIUM, permission="view", description="Consulta consentimento aplicavel.", sensitive=("lead_ids",)),
     _manifest("campaigns.preview", "campaign_operator", CampaignPayloadInput, campaign_preview, effect=ToolEffect.DRAFT, risk=ToolRisk.MEDIUM, permission="edit", description="Calcula elegibilidade e preview sem criar outbox."),
     _manifest("campaigns.create_draft", "campaign_operator", CampaignCreateDraftInput, campaign_create, effect=ToolEffect.WRITE, risk=ToolRisk.HIGH, permission="edit", description="Cria somente draft de campanha; nunca envia."),
@@ -648,4 +648,3 @@ HARNESS_TOOL_REGISTRY = ToolRegistry([
 ])
 
 HARNESS_TOOL_REGISTRY.validate()
-

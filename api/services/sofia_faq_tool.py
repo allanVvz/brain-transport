@@ -1,4 +1,4 @@
-﻿"""Sofia FAQ tool â€” `adaptar_faqs_universais_ao_grafo`.
+"""Sofia FAQ tool — `adaptar_faqs_universais_ao_grafo`.
 
 Turns universal commercial questions into FAQs adapted to the *active branch* of
 a persona's graph. It never invents a loose/generic FAQ: every suggestion is
@@ -9,8 +9,8 @@ Everything here is pure over already-loaded graph data (nodes + edges), so it is
 unit-testable without a live Supabase. Persistence and the HTTP surface live in
 the route layer; this module only resolves context and produces suggestions.
 
-Authoritative doc: `agents/Sofia Tool â€” AdaptaÃ§Ã£o de FAQs Comerciais Universais
-ao Grafo da Persona.md` (empty at time of writing â€” this is the minimal
+Authoritative doc: `agents/Sofia Tool — Adaptação de FAQs Comerciais Universais
+ao Grafo da Persona.md` (empty at time of writing — this is the minimal
 implementation derived from the task rules).
 """
 from __future__ import annotations
@@ -29,52 +29,52 @@ _PARENT_PREFERENCE = ["product", "offer", "product_group", "copy", "campaign", "
 # and {brand}. Kept deterministic so "gerar novamente" is reproducible per slot.
 _COMMERCIAL_FAQ_TEMPLATES: list[dict[str, str]] = [
     {
-        "question": "Como faÃ§o para comprar o {product} na {brand}?",
-        "answer": "VocÃª pode solicitar atendimento pela {brand}, confirmar a disponibilidade do {product} e finalizar a compra com envio para a sua regiÃ£o.",
+        "question": "Como faço para comprar o {product} na {brand}?",
+        "answer": "Você pode solicitar atendimento pela {brand}, confirmar a disponibilidade do {product} e finalizar a compra com envio para a sua região.",
     },
     {
-        "question": "O {product} tem proteÃ§Ã£o UV?",
-        "answer": "Sim, o {product} oferece proteÃ§Ã£o contra raios UV. Confirme os detalhes tÃ©cnicos com o atendimento da {brand} antes de finalizar.",
+        "question": "O {product} tem proteção UV?",
+        "answer": "Sim, o {product} oferece proteção contra raios UV. Confirme os detalhes técnicos com o atendimento da {brand} antes de finalizar.",
     },
     {
         "question": "O {product} acompanha caixa e flanela de microfibra?",
         "answer": "O {product} normalmente acompanha case e flanela de microfibra. A {brand} confirma os itens inclusos no momento da compra.",
     },
     {
-        "question": "Qual Ã© o prazo de envio do {product}?",
-        "answer": "O prazo de envio do {product} depende da sua regiÃ£o. A {brand} informa o prazo estimado assim que o pedido Ã© confirmado.",
+        "question": "Qual é o prazo de envio do {product}?",
+        "answer": "O prazo de envio do {product} depende da sua região. A {brand} informa o prazo estimado assim que o pedido é confirmado.",
     },
     {
         "question": "O {product} combina mais com uso casual ou para praia/esporte?",
-        "answer": "O {product} Ã© versÃ¡til e funciona bem tanto para o dia a dia quanto para praia e esportes. O atendimento da {brand} ajuda a escolher conforme o seu uso.",
+        "answer": "O {product} é versátil e funciona bem tanto para o dia a dia quanto para praia e esportes. O atendimento da {brand} ajuda a escolher conforme o seu uso.",
     },
     {
         "question": "Posso pedir atendimento antes de comprar o {product}?",
-        "answer": "Sim. Fale com a {brand} antes da compra para tirar dÃºvidas sobre o {product}, disponibilidade e formas de pagamento.",
+        "answer": "Sim. Fale com a {brand} antes da compra para tirar dúvidas sobre o {product}, disponibilidade e formas de pagamento.",
     },
     {
         "question": "O {product} tem garantia?",
-        "answer": "O {product} conta com garantia. As condiÃ§Ãµes e o prazo sÃ£o confirmados pela {brand} no momento da compra.",
+        "answer": "O {product} conta com garantia. As condições e o prazo são confirmados pela {brand} no momento da compra.",
     },
     {
         "question": "Quais formas de pagamento a {brand} aceita para o {product}?",
-        "answer": "A {brand} oferece diferentes formas de pagamento para o {product}. Consulte o atendimento para ver as opÃ§Ãµes disponÃ­veis e parcelamento.",
+        "answer": "A {brand} oferece diferentes formas de pagamento para o {product}. Consulte o atendimento para ver as opções disponíveis e parcelamento.",
     },
     {
-        "question": "O {product} Ã© original?",
-        "answer": "Sim, o {product} vendido pela {brand} Ã© original. VocÃª pode confirmar a procedÃªncia diretamente com o atendimento.",
+        "question": "O {product} é original?",
+        "answer": "Sim, o {product} vendido pela {brand} é original. Você pode confirmar a procedência diretamente com o atendimento.",
     },
     {
-        "question": "Como faÃ§o a troca ou devoluÃ§Ã£o do {product}?",
-        "answer": "Caso precise trocar ou devolver o {product}, a {brand} orienta o passo a passo dentro do prazo previsto apÃ³s o recebimento.",
+        "question": "Como faço a troca ou devolução do {product}?",
+        "answer": "Caso precise trocar ou devolver o {product}, a {brand} orienta o passo a passo dentro do prazo previsto após o recebimento.",
     },
     {
-        "question": "O {product} estÃ¡ disponÃ­vel em outras cores ou variaÃ§Ãµes?",
-        "answer": "O {product} pode ter outras variaÃ§Ãµes disponÃ­veis. Pergunte ao atendimento da {brand} quais opÃ§Ãµes existem em estoque.",
+        "question": "O {product} está disponível em outras cores ou variações?",
+        "answer": "O {product} pode ter outras variações disponíveis. Pergunte ao atendimento da {brand} quais opções existem em estoque.",
     },
     {
-        "question": "VocÃªs entregam o {product} para todo o Brasil?",
-        "answer": "A {brand} envia o {product} para diversas regiÃµes. Confirme a cobertura de entrega para o seu endereÃ§o com o atendimento.",
+        "question": "Vocês entregam o {product} para todo o Brasil?",
+        "answer": "A {brand} envia o {product} para diversas regiões. Confirme a cobertura de entrega para o seu endereço com o atendimento.",
     },
 ]
 
@@ -177,7 +177,7 @@ def _context_snippet(markdown: str) -> str:
     if not first:
         return ""
     if len(first) > 180:
-        first = first[:177].rstrip() + "â€¦"
+        first = first[:177].rstrip() + "…"
     return f"Contexto confirmado: {first}"
 
 
@@ -186,7 +186,7 @@ def _clean_branch_sentence(text: str) -> str:
     if not text:
         return ""
     text = re.sub(
-        r"^(copy|briefing|campanha|faq)\s+(de\s+)?(divulgacao|divulga[cÃ§][aÃ£]o|atendimento)?\s*(para|sobre)?\s*",
+        r"^(copy|briefing|campanha|faq)\s+(de\s+)?(divulgacao|divulga[cç][aã]o|atendimento)?\s*(para|sobre)?\s*",
         "",
         text,
         flags=re.I,
@@ -348,7 +348,7 @@ def build_branch_context(parent_node: dict, nodes: list[dict], edges: list[dict]
 _SELLABLE_TYPES = {"product", "offer", "service", "course", "event"}
 
 # Substrings that must never appear in a FAQ for a non-sellable node (audience,
-# brand, briefing, discovery). Guardrail against "Como comprar o TÃ©cnicos?".
+# brand, briefing, discovery). Guardrail against "Como comprar o Técnicos?".
 _COMMERCIAL_GUARDRAIL_TOKENS = (
     "frete",
     "acompanha caixa",
@@ -357,83 +357,83 @@ _COMMERCIAL_GUARDRAIL_TOKENS = (
     "prazo de envio",
     "prazo de entrega",
     "parcelar",
-    "Ã  vista",
+    "à vista",
     "boleto",
 )
 
-# â”€â”€ Template sets per node category â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Template sets per node category ──────────────────────────────────────────
 
 _PRODUCT_GROUP_TEMPLATES = [
-    {"question": "Qual a diferenÃ§a entre os modelos de {subject} disponÃ­veis?", "answer": "Os modelos de {subject} variam em estilo e especificaÃ§Ã£o. A {brand} ajuda a comparar as opÃ§Ãµes e indicar a melhor para vocÃª."},
-    {"question": "Quais opÃ§Ãµes de {subject} a {brand} oferece?", "answer": "A {brand} trabalha com diferentes versÃµes de {subject}. Consulte o atendimento para ver o que estÃ¡ disponÃ­vel em estoque."},
-    {"question": "Qual {subject} Ã© mais indicado para uso casual?", "answer": "Depende do seu perfil de uso. A {brand} recomenda o modelo de {subject} mais adequado conforme a sua necessidade."},
-    {"question": "Qual Ã© a faixa de preÃ§o dos modelos de {subject}?", "answer": "Os preÃ§os de {subject} variam conforme o modelo. O atendimento da {brand} informa os valores atualizados."},
+    {"question": "Qual a diferença entre os modelos de {subject} disponíveis?", "answer": "Os modelos de {subject} variam em estilo e especificação. A {brand} ajuda a comparar as opções e indicar a melhor para você."},
+    {"question": "Quais opções de {subject} a {brand} oferece?", "answer": "A {brand} trabalha com diferentes versões de {subject}. Consulte o atendimento para ver o que está disponível em estoque."},
+    {"question": "Qual {subject} é mais indicado para uso casual?", "answer": "Depende do seu perfil de uso. A {brand} recomenda o modelo de {subject} mais adequado conforme a sua necessidade."},
+    {"question": "Qual é a faixa de preço dos modelos de {subject}?", "answer": "Os preços de {subject} variam conforme o modelo. O atendimento da {brand} informa os valores atualizados."},
     {"question": "Como escolher o {subject} ideal para o meu perfil?", "answer": "Conte para a {brand} como pretende usar o {subject} e o atendimento orienta a melhor escolha."},
 ]
 
 _OFFER_TEMPLATES = [
-    {"question": "AtÃ© quando a oferta {subject} fica disponÃ­vel?", "answer": "A oferta {subject} tem prazo limitado. Confirme a data final com o atendimento da {brand}."},
-    {"question": "Qual Ã© o desconto da oferta {subject}?", "answer": "A oferta {subject} tem condiÃ§Ã£o especial. O atendimento da {brand} detalha o desconto aplicado."},
-    {"question": "Quais sÃ£o as condiÃ§Ãµes da oferta {subject}?", "answer": "As regras da oferta {subject} sÃ£o confirmadas pela {brand} antes da compra."},
+    {"question": "Até quando a oferta {subject} fica disponível?", "answer": "A oferta {subject} tem prazo limitado. Confirme a data final com o atendimento da {brand}."},
+    {"question": "Qual é o desconto da oferta {subject}?", "answer": "A oferta {subject} tem condição especial. O atendimento da {brand} detalha o desconto aplicado."},
+    {"question": "Quais são as condições da oferta {subject}?", "answer": "As regras da oferta {subject} são confirmadas pela {brand} antes da compra."},
     {"question": "A oferta {subject} tem limite de quantidade?", "answer": "A oferta {subject} pode ter quantidade limitada. Consulte a {brand} sobre a disponibilidade."},
-    {"question": "A oferta {subject} inclui algum bÃ´nus?", "answer": "A {brand} informa se a oferta {subject} acompanha algum bÃ´nus ou vantagem adicional."},
+    {"question": "A oferta {subject} inclui algum bônus?", "answer": "A {brand} informa se a oferta {subject} acompanha algum bônus ou vantagem adicional."},
 ]
 
 _CAMPAIGN_TEMPLATES = [
-    {"question": "Como funciona a campanha {subject}?", "answer": "A campanha {subject} tem regras prÃ³prias. A {brand} explica como participar e quais sÃ£o os benefÃ­cios."},
-    {"question": "Qual Ã© o objetivo da campanha {subject}?", "answer": "A campanha {subject} foi criada com um objetivo especÃ­fico. O atendimento da {brand} detalha a proposta."},
-    {"question": "Qual o benefÃ­cio de participar da campanha {subject}?", "answer": "Participar da campanha {subject} traz vantagens divulgadas pela {brand}."},
-    {"question": "AtÃ© quando vai a campanha {subject}?", "answer": "A campanha {subject} tem perÃ­odo definido. Confirme as datas com a {brand}."},
-    {"question": "Para qual pÃºblico Ã© a campanha {subject}?", "answer": "A campanha {subject} Ã© direcionada a um pÃºblico especÃ­fico. A {brand} esclarece para quem ela faz sentido."},
-    {"question": "Como faÃ§o para participar da campanha {subject}?", "answer": "Fale com a {brand} para entender o passo a passo de participaÃ§Ã£o na campanha {subject}."},
+    {"question": "Como funciona a campanha {subject}?", "answer": "A campanha {subject} tem regras próprias. A {brand} explica como participar e quais são os benefícios."},
+    {"question": "Qual é o objetivo da campanha {subject}?", "answer": "A campanha {subject} foi criada com um objetivo específico. O atendimento da {brand} detalha a proposta."},
+    {"question": "Qual o benefício de participar da campanha {subject}?", "answer": "Participar da campanha {subject} traz vantagens divulgadas pela {brand}."},
+    {"question": "Até quando vai a campanha {subject}?", "answer": "A campanha {subject} tem período definido. Confirme as datas com a {brand}."},
+    {"question": "Para qual público é a campanha {subject}?", "answer": "A campanha {subject} é direcionada a um público específico. A {brand} esclarece para quem ela faz sentido."},
+    {"question": "Como faço para participar da campanha {subject}?", "answer": "Fale com a {brand} para entender o passo a passo de participação na campanha {subject}."},
 ]
 
 _BRAND_TEMPLATES = [
     {"question": "Por que escolher a {brand}?", "answer": "A {brand} se diferencia pela proposta e pelo atendimento. Fale com a equipe para conhecer os diferenciais."},
-    {"question": "Como funciona o atendimento da {brand}?", "answer": "A {brand} oferece atendimento para tirar dÃºvidas e orientar sua decisÃ£o."},
-    {"question": "Quais sÃ£o os diferenciais da {brand}?", "answer": "A {brand} tem diferenciais prÃ³prios de posicionamento e serviÃ§o, apresentados pelo atendimento."},
-    {"question": "Por quais canais consigo falar com a {brand}?", "answer": "A {brand} disponibiliza canais de contato para atendimento â€” consulte qual Ã© o melhor para vocÃª."},
-    {"question": "A {brand} Ã© confiÃ¡vel?", "answer": "A {brand} preza por transparÃªncia no atendimento e na relaÃ§Ã£o com o pÃºblico."},
+    {"question": "Como funciona o atendimento da {brand}?", "answer": "A {brand} oferece atendimento para tirar dúvidas e orientar sua decisão."},
+    {"question": "Quais são os diferenciais da {brand}?", "answer": "A {brand} tem diferenciais próprios de posicionamento e serviço, apresentados pelo atendimento."},
+    {"question": "Por quais canais consigo falar com a {brand}?", "answer": "A {brand} disponibiliza canais de contato para atendimento — consulte qual é o melhor para você."},
+    {"question": "A {brand} é confiável?", "answer": "A {brand} preza por transparência no atendimento e na relação com o público."},
 ]
 
 _BRIEFING_TEMPLATES = [
-    {"question": "Qual Ã© a proposta descrita neste briefing?", "answer": "Este briefing define a proposta e o direcionamento do trabalho. {context}"},
-    {"question": "Para qual pÃºblico este briefing foi pensado?", "answer": "O briefing descreve o pÃºblico-alvo pretendido. {context}"},
-    {"question": "Qual problema este briefing quer resolver?", "answer": "O objetivo do briefing Ã© endereÃ§ar um problema especÃ­fico. {context}"},
-    {"question": "Qual Ã© o posicionamento sugerido neste briefing?", "answer": "O briefing indica um posicionamento a ser seguido. {context}"},
+    {"question": "Qual é a proposta descrita neste briefing?", "answer": "Este briefing define a proposta e o direcionamento do trabalho. {context}"},
+    {"question": "Para qual público este briefing foi pensado?", "answer": "O briefing descreve o público-alvo pretendido. {context}"},
+    {"question": "Qual problema este briefing quer resolver?", "answer": "O objetivo do briefing é endereçar um problema específico. {context}"},
+    {"question": "Qual é o posicionamento sugerido neste briefing?", "answer": "O briefing indica um posicionamento a ser seguido. {context}"},
     {"question": "Que tipo de oferta este briefing prepara?", "answer": "O briefing prepara o terreno para uma oferta futura. {context}"},
 ]
 
 _COPY_TEMPLATES = [
-    {"question": "Qual Ã© a principal promessa desta copy?", "answer": "A copy apresenta uma promessa central ao leitor. {context}"},
+    {"question": "Qual é a principal promessa desta copy?", "answer": "A copy apresenta uma promessa central ao leitor. {context}"},
     {"question": "Qual argumento esta copy usa para convencer?", "answer": "A copy se apoia em um argumento principal. {context}"},
-    {"question": "Que objeÃ§Ã£o esta copy procura responder?", "answer": "A copy antecipa e responde a uma objeÃ§Ã£o comum. {context}"},
-    {"question": "Para quem esta copy foi escrita?", "answer": "A copy fala diretamente com um pÃºblico especÃ­fico. {context}"},
-    {"question": "Qual aÃ§Ã£o esta copy pede ao leitor?", "answer": "A copy conduz o leitor a uma aÃ§Ã£o clara. {context}"},
+    {"question": "Que objeção esta copy procura responder?", "answer": "A copy antecipa e responde a uma objeção comum. {context}"},
+    {"question": "Para quem esta copy foi escrita?", "answer": "A copy fala diretamente com um público específico. {context}"},
+    {"question": "Qual ação esta copy pede ao leitor?", "answer": "A copy conduz o leitor a uma ação clara. {context}"},
 ]
 
 _AUDIENCE_TEMPLATES = [
-    {"question": "Quais temas o pÃºblico {audience} costuma acompanhar mais de perto?", "answer": "Mapear os interesses de {descriptor} ajuda a Sofia a oferecer conteÃºdo e soluÃ§Ãµes relevantes."},
-    {"question": "Esse pÃºblico estÃ¡ mais interessado em adquirir produtos, aprender, resolver problemas ou se atualizar?", "answer": "Entender a intenÃ§Ã£o de {descriptor} define se a abordagem deve ser de venda, educaÃ§Ã£o ou suporte."},
-    {"question": "Que nÃ­vel de explicaÃ§Ã£o a Sofia deve usar com {descriptor}?", "answer": "Calibrar a linguagem para {descriptor} evita ser raso demais ou tÃ©cnico demais."},
-    {"question": "Quais dÃºvidas o pÃºblico {audience} costuma ter antes de escolher um produto, curso ou serviÃ§o?", "answer": "Conhecer as dÃºvidas de {descriptor} permite preparar respostas que destravam a decisÃ£o."},
-    {"question": "O pÃºblico {audience} jÃ¡ tem uma soluÃ§Ã£o em mente ou precisa de recomendaÃ§Ã£o?", "answer": "Saber o estÃ¡gio de {descriptor} orienta entre recomendar ou apenas confirmar a escolha."},
-    {"question": "O pÃºblico {audience} prefere explicaÃ§Ã£o tÃ©cnica ou linguagem simples?", "answer": "Ajustar o tom para {descriptor} melhora a compreensÃ£o e a confianÃ§a."},
+    {"question": "Quais temas o público {audience} costuma acompanhar mais de perto?", "answer": "Mapear os interesses de {descriptor} ajuda a Sofia a oferecer conteúdo e soluções relevantes."},
+    {"question": "Esse público está mais interessado em adquirir produtos, aprender, resolver problemas ou se atualizar?", "answer": "Entender a intenção de {descriptor} define se a abordagem deve ser de venda, educação ou suporte."},
+    {"question": "Que nível de explicação a Sofia deve usar com {descriptor}?", "answer": "Calibrar a linguagem para {descriptor} evita ser raso demais ou técnico demais."},
+    {"question": "Quais dúvidas o público {audience} costuma ter antes de escolher um produto, curso ou serviço?", "answer": "Conhecer as dúvidas de {descriptor} permite preparar respostas que destravam a decisão."},
+    {"question": "O público {audience} já tem uma solução em mente ou precisa de recomendação?", "answer": "Saber o estágio de {descriptor} orienta entre recomendar ou apenas confirmar a escolha."},
+    {"question": "O público {audience} prefere explicação técnica ou linguagem simples?", "answer": "Ajustar o tom para {descriptor} melhora a compreensão e a confiança."},
 ]
 
 _AUDIENCE_OBJECT_TEMPLATES = [
-    {"question": "Quais {object} fazem mais sentido para o pÃºblico {audience}?", "answer": "Relacionar {object} ao perfil de {descriptor} ajuda a recomendar a opÃ§Ã£o certa."},
-    {"question": "O pÃºblico {audience} busca {object} para uso pessoal ou profissional?", "answer": "O contexto de uso de {object} por {descriptor} muda a recomendaÃ§Ã£o."},
-    {"question": "Quais dÃºvidas o pÃºblico {audience} costuma ter sobre {object}?", "answer": "Antecipar dÃºvidas de {descriptor} sobre {object} acelera a decisÃ£o."},
-    {"question": "O pÃºblico {audience} prioriza preÃ§o, qualidade ou suporte ao escolher {object}?", "answer": "Entender a prioridade de {descriptor} orienta como apresentar {object}."},
-    {"question": "Como apresentar {object} para o pÃºblico {audience}?", "answer": "A forma de apresentar {object} deve falar a lÃ­ngua de {descriptor}."},
+    {"question": "Quais {object} fazem mais sentido para o público {audience}?", "answer": "Relacionar {object} ao perfil de {descriptor} ajuda a recomendar a opção certa."},
+    {"question": "O público {audience} busca {object} para uso pessoal ou profissional?", "answer": "O contexto de uso de {object} por {descriptor} muda a recomendação."},
+    {"question": "Quais dúvidas o público {audience} costuma ter sobre {object}?", "answer": "Antecipar dúvidas de {descriptor} sobre {object} acelera a decisão."},
+    {"question": "O público {audience} prioriza preço, qualidade ou suporte ao escolher {object}?", "answer": "Entender a prioridade de {descriptor} orienta como apresentar {object}."},
+    {"question": "Como apresentar {object} para o público {audience}?", "answer": "A forma de apresentar {object} deve falar a língua de {descriptor}."},
 ]
 
 _DISCOVERY_TEMPLATES = [
-    {"question": "Qual Ã© o principal interesse relacionado a {subject}?", "answer": "Entender o interesse central em {subject} guia as prÃ³ximas perguntas e respostas. {context}"},
-    {"question": "Que tipo de dÃºvida costuma surgir sobre {subject}?", "answer": "Mapear as dÃºvidas sobre {subject} ajuda a preparar respostas Ãºteis. {context}"},
-    {"question": "Qual contexto Ã© mais importante entender sobre {subject}?", "answer": "Clarear o contexto de {subject} evita respostas genÃ©ricas. {context}"},
-    {"question": "Que objetivo a pessoa costuma ter ao buscar {subject}?", "answer": "Saber o objetivo por trÃ¡s de {subject} direciona a conversa. {context}"},
+    {"question": "Qual é o principal interesse relacionado a {subject}?", "answer": "Entender o interesse central em {subject} guia as próximas perguntas e respostas. {context}"},
+    {"question": "Que tipo de dúvida costuma surgir sobre {subject}?", "answer": "Mapear as dúvidas sobre {subject} ajuda a preparar respostas úteis. {context}"},
+    {"question": "Qual contexto é mais importante entender sobre {subject}?", "answer": "Clarear o contexto de {subject} evita respostas genéricas. {context}"},
+    {"question": "Que objetivo a pessoa costuma ter ao buscar {subject}?", "answer": "Saber o objetivo por trás de {subject} direciona a conversa. {context}"},
 ]
 
 
@@ -451,7 +451,7 @@ def _build_children_index(nodes: list[dict], edges: list[dict]) -> dict[str, lis
 
 
 def find_sellable_in_branch(parent_node: dict, nodes: list[dict], edges: list[dict], context: dict[str, Any]) -> Optional[dict]:
-    """Look for a real sellable object in the branch â€” ancestors first, then
+    """Look for a real sellable object in the branch — ancestors first, then
     descendants. A product_group only counts when it actually has a product."""
     nodes_by_id = {n.get("id"): n for n in nodes}
     for entry in context.get("path", []):
@@ -498,12 +498,12 @@ def classify_faq_target(parent_node: dict, sellable: Optional[dict]) -> str:
 def _audience_descriptor(name: str, markdown: str) -> str:
     text = (markdown or "").strip()
     if not text:
-        return f"o pÃºblico {name}" if name else "esse pÃºblico"
+        return f"o público {name}" if name else "esse público"
     first = next((line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("#")), "")
     sentence = first.split(".")[0].strip() if first else ""
     if sentence:
         return sentence[0].lower() + sentence[1:] if len(sentence) > 1 else sentence
-    return f"o pÃºblico {name}" if name else "esse pÃºblico"
+    return f"o público {name}" if name else "esse público"
 
 
 def _violates_commercial_guardrail(question: str, node_name: str) -> bool:
@@ -512,8 +512,8 @@ def _violates_commercial_guardrail(question: str, node_name: str) -> bool:
     if any(token in q for token in _COMMERCIAL_GUARDRAIL_TOKENS):
         return True
     if name:
-        for verb in ("comprar", "garantia d", "preÃ§o d", "preco d"):
-            # forbid only when the verb targets the node itself, e.g. "comprar o TÃ©cnicos"
+        for verb in ("comprar", "garantia d", "preço d", "preco d"):
+            # forbid only when the verb targets the node itself, e.g. "comprar o Técnicos"
             for connector in (f"{verb} o {name}", f"{verb} a {name}", f"{verb} {name}"):
                 if connector in q:
                     return True
@@ -645,7 +645,7 @@ def _copy_templates_for(markdown: str) -> list[dict[str, str]]:
     for spec in specs[:3]:
         templates.append({
             "question": f"O que significa {spec} citado nesta copy?",
-            "answer": f"A copy menciona {spec}. Vale explicar de forma simples o que {spec} representa e qual o benefÃ­cio prÃ¡tico.",
+            "answer": f"A copy menciona {spec}. Vale explicar de forma simples o que {spec} representa e qual o benefício prático.",
         })
     templates.extend(_COPY_TEMPLATES)
     return templates
@@ -668,4 +668,3 @@ def _extract_spec_tokens(markdown: str) -> list[str]:
             seen.add(key)
             unique.append(tok)
     return unique
-

@@ -1,4 +1,4 @@
-﻿"""Prepare and clean the local-only Evolution E2E fixture.
+"""Prepare and clean the local-only Evolution E2E fixture.
 
 This script is intentionally available only as a Docker/QA orchestration helper.
 It never prints credentials or complete workflow bindings. The caller keeps the
@@ -236,4 +236,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

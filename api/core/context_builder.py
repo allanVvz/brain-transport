@@ -1,4 +1,4 @@
-﻿from schemas.context import Context, Lead
+from schemas.context import Context, Lead
 from schemas.events import LeadEvent
 from services import supabase_client, knowledge_graph
 from services.knowledge_service import search_kb_text
@@ -59,7 +59,7 @@ def build(event: LeadEvent) -> Context:
             if ntype in ("product", "campaign", "rule", "tone"):
                 line = f"[{ntype}] {n.get('title')}"
                 if n.get("summary"):
-                    line += f" â€” {n['summary'][:240]}"
+                    line += f" — {n['summary'][:240]}"
                 graph_lines.append(line)
         for a in graph_ctx.get("assets", []):
             graph_lines.append(
@@ -79,4 +79,3 @@ def build(event: LeadEvent) -> Context:
         persona_slug=event.persona_slug,
         metadata=lead_data.get("metadata") or {},
     )
-

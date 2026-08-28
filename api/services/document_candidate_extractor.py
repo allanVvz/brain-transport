@@ -1,4 +1,4 @@
-﻿"""Extract product/knowledge candidates from a pasted or uploaded document.
+"""Extract product/knowledge candidates from a pasted or uploaded document.
 
 Complements catalog_crawler.py's URL-based extraction with a document-text
 path, producing the exact same "product_candidates" envelope shape
@@ -27,7 +27,7 @@ from services.model_router import ModelRouter, ModelRouterError
 _HEADING_RE = re.compile(r"^#{2,4}\s+(.+)$", re.M)
 _FIELD_RE = re.compile(r"^\s*-\s*\*\*([^:*]+):\*\*\s*(.+)$", re.M)
 _PRICE_RE = re.compile(r"R\$\s*([\d.]+,\d{2})")
-_TITLE_PRICE_SUFFIX_RE = re.compile(r"\s*[â€”-]\s*R\$\s*[\d.,]+.*$")
+_TITLE_PRICE_SUFFIX_RE = re.compile(r"\s*[—-]\s*R\$\s*[\d.,]+.*$")
 
 
 def _parse_price(text: str | None) -> float | None:
@@ -55,8 +55,8 @@ def _structured_markdown_candidates(text: str) -> list[dict[str, Any]]:
             field.strip().lower(): value.strip()
             for field, value in _FIELD_RE.findall(block)
         }
-        description = fields.get("descricao") or fields.get("descriÃ§Ã£o") or fields.get("copy")
-        price = _parse_price(fields.get("preco") or fields.get("preÃ§o") or title)
+        description = fields.get("descricao") or fields.get("descrição") or fields.get("copy")
+        price = _parse_price(fields.get("preco") or fields.get("preço") or title)
         colors_raw = fields.get("cores") or ""
         candidates.append({
             "title": _TITLE_PRICE_SUFFIX_RE.sub("", title).strip() or title,
@@ -158,4 +158,3 @@ def extract_candidates_from_document(
         "source_note": f"Documento colado/enviado pelo operador, estrategia: {strategy}.",
         "absolute_source": None,
     }
-

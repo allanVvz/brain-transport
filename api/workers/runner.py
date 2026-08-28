@@ -4,24 +4,14 @@ import argparse
 import asyncio
 import signal
 
-from workers.flow_validator_worker import FlowValidatorWorker
 from workers.health_check_worker import HealthCheckWorker
-from workers.kb_sync_worker import KbSyncWorker
 from workers.media_ingest_worker import MediaIngestWorker
-from workers.n8n_mirror_worker import N8nMirrorWorker
 from workers.whatsapp_dispatch_worker import WhatsAppDispatchWorker
-from workers.wa_validator_worker import WaValidatorWorker
-from workers.inactivity_recovery_worker import InactivityRecoveryWorker
 
 
 WORKERS = {
-    "flow_validator": FlowValidatorWorker,
-    "n8n_mirror": N8nMirrorWorker,
     "health_check": HealthCheckWorker,
-    "kb_sync": KbSyncWorker,
     "whatsapp_dispatch": WhatsAppDispatchWorker,
-    "wa_validator": WaValidatorWorker,
-    "inactivity_recovery": InactivityRecoveryWorker,
     "media_ingest": MediaIngestWorker,
 }
 

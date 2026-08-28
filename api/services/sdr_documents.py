@@ -1,4 +1,4 @@
-﻿"""Compile persona Markdown into the canonical Graph JSON v2 contract.
+"""Compile persona Markdown into the canonical Graph JSON v2 contract.
 
 The compiler is intentionally pure: it reads files, validates the complete
 publication set and returns one document. Persistence only happens through the
@@ -486,4 +486,3 @@ def compile_persona_documents(
     if not is_valid:
         raise GraphDocumentCompileError(graph_errors)
     return graph
-

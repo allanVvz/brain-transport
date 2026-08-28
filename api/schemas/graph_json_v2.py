@@ -1,4 +1,4 @@
-﻿"""Typed canonical Graph JSON contract.
+"""Typed canonical Graph JSON contract.
 
 ``2.1`` is the write contract.  ``2.0`` remains readable during the cutover and
 is adapted by the same models so legacy publishers and the dashboard keep
@@ -302,4 +302,3 @@ class Patch(BaseModel):
     idempotency_key: str | None = None
     tool_calls: list[dict[str, Any]] = Field(default_factory=list)
     operations: list[PatchOperation] = Field(default_factory=list)
-

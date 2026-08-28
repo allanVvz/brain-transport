@@ -1,4 +1,4 @@
-﻿"""Read-only catalog projection of canonical published Graph JSON documents."""
+"""Read-only catalog projection of canonical published Graph JSON documents."""
 from __future__ import annotations
 
 from collections import Counter
@@ -12,7 +12,7 @@ CATEGORY_ORDER = (
     ("faqs", "FAQs", {"faq"}),
     ("rules_tone", "Regras e Tom", {"rule", "tone"}),
     ("products", "Produtos e Grupos", {"product", "product_group"}),
-    ("campaigns", "Campanhas e PÃºblicos", {"campaign", "audience"}),
+    ("campaigns", "Campanhas e Públicos", {"campaign", "audience"}),
     ("brand_briefing", "Marca e Briefing", {"persona", "brand", "briefing"}),
     ("copies", "Copies", {"copy"}),
     ("assets", "Assets", {"asset"}),
@@ -76,7 +76,7 @@ def project_graph(
             "status": _status(node),
             "source": data.get("source") or "pending_source",
             "path": path,
-            "path_label": " â€º ".join(item["title"] for item in path),
+            "path_label": " › ".join(item["title"] for item in path),
             "faq_count": int(data.get("question_count") or 1)
             if node.node_type == "faq" else 0,
             "embedded": node.id in embedded_faq_ids,
@@ -128,4 +128,3 @@ def load_catalog(
         graph, version=version, checksum=checksum,
         persona_id=persona_id, persona_name=persona_name,
     )
-

@@ -1,11 +1,11 @@
-﻿"""Switch a persona's live conversation engine (mirrors PATCH /personas/{slug}/routing).
+"""Switch a persona's live conversation engine (mirrors PATCH /personas/{slug}/routing).
 
 Runs the exact same n8n_agents activation path as
 routes.personas.update_routing: validates the persona's DeepSeek
 credential, resyncs (creates or updates) the n8n workflow via
 deepseek_n8n_service.resync_workflow_for_persona(), then points every
 active workflow binding at it. Exists so this switch can be applied from
-the VPS without going through an authenticated HTTP session â€” the
+the VPS without going through an authenticated HTTP session — the
 same reason configure_whatsapp_hotfix_bindings.py exists as a script
 rather than a curl call.
 """
@@ -140,4 +140,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

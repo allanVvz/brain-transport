@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel
+from pydantic import BaseModel
 from typing import Optional, List
 
 
@@ -27,4 +27,3 @@ class Context(BaseModel):
     route_hint: str = "SDR"
     funnel_stage: str = "novo"
     metadata: dict = {}
-

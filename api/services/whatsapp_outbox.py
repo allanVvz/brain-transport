@@ -1,4 +1,4 @@
-﻿"""Canonical WhatsApp outbox creation, always bound to the lead channel."""
+"""Canonical WhatsApp outbox creation, always bound to the lead channel."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -140,13 +140,13 @@ def _observe_duplicate_content(
     caller before this runs) only catches a literal re-dispatch of the same
     outbox row. It does not catch an operator or agent typing the same
     answer again as a brand-new send because delivery looked ambiguous
-    (missing ACK from the provider) â€” that produces a second, distinct row
+    (missing ACK from the provider) — that produces a second, distinct row
     that sails through as a distinct turn. This observer records that quality
     signal generically; canonical identity, not text, decides idempotency.
 
     A content duplicate is not a binding-level safety anomaly, so callers
     must not treat it as one: it must never pause the lead or sweep sibling
-    buffer rows (confirmed live 2026-08-10 â€” a legitimate new turn that
+    buffer rows (confirmed live 2026-08-10 — a legitimate new turn that
     happened to generate the same reply text tripped this guard, which used
     to call record_whatsapp_safety_violation and cascaded into hours of
     silence for the whole backlog). The caller still enqueues the distinct
@@ -296,4 +296,3 @@ def enqueue_outbound(*, lead: dict[str, Any], text: str, sender_type: str,
                 "A chave idempotente ja pertence a outra mensagem.",
             )
     return {**envelope, "binding": binding}
-

@@ -1,4 +1,4 @@
-﻿"""Declarative conversation contracts compiled from a published Graph JSON.
+"""Declarative conversation contracts compiled from a published Graph JSON.
 
 The graph owns branches, fields, questions and handoff rules.  This module
 only derives coordinates and checks model proposals against those facts; it
@@ -575,7 +575,7 @@ def apply_extracted_facts(
 #
 # A persona whose published policy says
 # ``appointment_policy.price_disclosure == "human_only"`` must never let the
-# agent state money for a service â€” not a value, not a range, not an
+# agent state money for a service — not a value, not a range, not an
 # approximation, not an installment.  The regex and the carve-out live here,
 # next to the rest of the graph-contract proof checks, so the runtime guard
 # and check_proposal() enforce exactly the same rule from one definition.
@@ -586,15 +586,15 @@ def apply_extracted_facts(
 # "10%", "4x sem juros").
 _NOT_MONEY_UNIT = (
     r"(?!\s*(?:%|x\b|h\b|hs\b|hora|horas|min\b|minuto|minutos|dia|dias|"
-    r"semana|semanas|m[eÃª]s|meses|ano|anos|km|kg|vezes|parcelas))"
+    r"semana|semanas|m[eê]s|meses|ano|anos|km|kg|vezes|parcelas))"
 )
 # ``(?![\d.,])`` stops the number from being truncated so the unit lookahead
-# always inspects what follows the *whole* figure ("30 minutos", not "0 â€¦").
+# always inspects what follows the *whole* figure ("30 minutos", not "0 …").
 _AMOUNT = r"\d[\d.,]*(?![\d.,])" + _NOT_MONEY_UNIT
 _PRICE_LEAD_IN = (
     r"cust\w*|sai\s+por|fic(?:a|am|ou)\s+(?:em|por)?|"
-    r"valor(?:es)?\s*(?:de|Ã©|e|em|:)?|pre[Ã§c]o\w*\s*(?:de|Ã©|e|:)?|"
-    r"or[Ã§c]amento\w*\s*(?:de|Ã©|e|:)?|investimento\s*(?:de|Ã©|e|:)?|"
+    r"valor(?:es)?\s*(?:de|é|e|em|:)?|pre[çc]o\w*\s*(?:de|é|e|:)?|"
+    r"or[çc]amento\w*\s*(?:de|é|e|:)?|investimento\s*(?:de|é|e|:)?|"
     r"a\s+partir\s+d[eoa]s?|em\s+torno\s+de|por\s+volta\s+de|cerca\s+de|"
     r"aproximadamente|faixa\s+de|entre|por\s+apenas|apenas"
 )
@@ -633,7 +633,7 @@ def carries_payment_policy_claim(nodes: Iterable[Any] | None) -> bool:
     Payment terms (deposit threshold, installment plans) are money figures the
     graph explicitly authorizes the agent to state, so they must survive the
     price guard.  The authorization is read from the node's own published
-    claims â€” never from the wording of the reply.
+    claims — never from the wording of the reply.
     """
     for node in nodes or ():
         for claim in _node_data(node).get("claims") or []:
@@ -747,7 +747,7 @@ def check_proposal(
     policy = persona_appointment_policy(graph)
     if price_disclosure_is_human_only(policy):
         # This persona reserves every price statement for a human, so price
-        # evidence in the graph does NOT authorize the reply â€” only a cited
+        # evidence in the graph does NOT authorize the reply — only a cited
         # node publishing a payment_policy claim does (deposit threshold,
         # installment terms), and the check covers ranges and approximations,
         # not just "R$ ...".
@@ -929,4 +929,3 @@ def materialize_qualification_questions(graph: GraphJson) -> GraphJson:
     persona.data = data
     persona.spec = {**(persona.spec or {}), "appointment_policy": policy}
     return result
-

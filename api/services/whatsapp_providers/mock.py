@@ -1,6 +1,6 @@
-﻿"""In-memory WhatsApp provider for safe E2E testing. Never touches the
-network â€” no Evolution instance, no Meta Graph API call, no real WhatsApp
-session â€” so a Baita<->Aurora E2E run can exercise
+"""In-memory WhatsApp provider for safe E2E testing. Never touches the
+network — no Evolution instance, no Meta Graph API call, no real WhatsApp
+session — so a Baita<->Aurora E2E run can exercise
 whatsapp_dispatch_worker._dispatch_outbound end to end without any risk of
 sending a real message.
 
@@ -111,7 +111,7 @@ class MockWhatsAppProvider:
         )
         # whatsapp_dispatch_worker._dispatch_outbound reads external id from
         # result["key"]["id"] (Evolution shape), result["messages"][0]["id"]
-        # (Meta shape), result["messageId"], or result["id"] â€” cover the
+        # (Meta shape), result["messageId"], or result["id"] — cover the
         # simplest two so the mock works regardless of which provider a
         # binding under test claims to be.
         return {"id": external_id, "messageId": external_id}
@@ -160,4 +160,3 @@ class MockWhatsAppProvider:
     def get_media_base64(self, binding: dict[str, Any], message_key: dict[str, Any]) -> bytes:
         """Deterministic stand-in for the Evolution media download."""
         return self.media_bytes
-

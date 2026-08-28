@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 from typing import Any
@@ -114,7 +114,7 @@ class MetaWhatsAppProvider:
         return [{"event_type": "META_RAW", "raw": payload}]
 
     # Meta message types that carry an attachment. Unlike Baileys, the payload
-    # holds only an opaque media id â€” the bytes need two authenticated calls,
+    # holds only an opaque media id — the bytes need two authenticated calls,
     # which is why the webhook records the id and the worker does the fetching.
     _MEDIA_TYPES = ("image", "audio", "video", "document", "sticker")
 
@@ -151,7 +151,7 @@ class MetaWhatsAppProvider:
         """Download a received attachment from the Graph API.
 
         Two steps: resolve the media id to a short-lived CDN URL, then fetch
-        that URL. The second call still needs the bearer token â€” the URL is
+        that URL. The second call still needs the bearer token — the URL is
         scoped, not public.
         """
         token, api_version = _credential(binding)
@@ -187,4 +187,3 @@ class MetaWhatsAppProvider:
 
     def send_media(self, binding: dict[str, Any], recipient: str, media: dict[str, Any]) -> dict[str, Any]:
         raise NotImplementedError("Meta Cloud media send is not implemented yet")
-

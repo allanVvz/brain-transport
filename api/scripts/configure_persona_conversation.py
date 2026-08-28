@@ -1,4 +1,4 @@
-﻿"""Configure one persona's canonical conversation binding without secrets."""
+"""Configure one persona's canonical conversation binding without secrets."""
 from __future__ import annotations
 
 import argparse
@@ -125,4 +125,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

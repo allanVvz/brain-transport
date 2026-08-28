@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import json
@@ -1094,4 +1094,3 @@ def import_graph_json(
         ),
         "action_projections": action_projections,
     }
-

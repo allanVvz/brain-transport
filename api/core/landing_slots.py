@@ -1,18 +1,18 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Canonical landing-page asset slots.
 
 A persona's catalog landing page (route /cardapio/<persona-slug> on the
 ai-brain-catalogo frontend) has a fixed set of asset-bearing surfaces.
 Each surface is a *slot* with:
 
-  - a slot_key  â€” stable identifier consumed by the frontend
-  - a parent node type â€” what kind of knowledge_node owns the slot
+  - a slot_key  — stable identifier consumed by the frontend
+  - a parent node type — what kind of knowledge_node owns the slot
                           (campaign for hero/footer, category for product groups)
   - a default relation_type for the edge that binds the asset to the parent
   - a page_binding.section value carried in edge metadata so menu.py can
     re-emit it on the wire
 
-Convention only â€” no new tables. All bindings live in
+Convention only — no new tables. All bindings live in
 ``knowledge_edges.metadata.page_binding`` plus the asset's
 ``metadata.asset_function``.
 """
@@ -171,4 +171,3 @@ def all_slots() -> list[dict]:
         {"slot_key": slot.value, **slot_config(slot)}
         for slot in LandingSlot
     ]
-

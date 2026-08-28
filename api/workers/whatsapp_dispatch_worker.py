@@ -1,4 +1,4 @@
-﻿"""Durable WhatsApp inbox/outbox dispatcher.
+"""Durable WhatsApp inbox/outbox dispatcher.
 
 Meta and the dashboard only write durable rows.  This worker leases rows from
 Postgres, calls Brain for inbound decisions and n8n only for transport.  It is
@@ -33,7 +33,7 @@ def _retry_delay(attempt: int) -> int:
 
 
 # Below this length an exact text match against a recent outbound message is
-# not a reliable echo signal â€” short greetings ("oi", "ok", "sim") are
+# not a reliable echo signal — short greetings ("oi", "ok", "sim") are
 # equally likely to be typed by a real customer replying in kind as to be a
 # genuine WhatsApp-side echo of the bot's own message. Confirmed live
 # 2026-08-04: a customer replying "oi" (matching the bot's own earlier
@@ -555,4 +555,3 @@ class WhatsAppDispatchWorker(BaseWorker):
             sre_logger.error(self.name, f"dead-letter buffer={row['id']}: {error}")
             return
         supabase_client.release_whatsapp_buffer(row["id"], "retry", delay_seconds=_retry_delay(attempts), error=error)
-

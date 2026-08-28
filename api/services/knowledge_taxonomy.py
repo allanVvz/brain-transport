@@ -1,4 +1,4 @@
-﻿"""Canonical fractal graph taxonomy.
+"""Canonical fractal graph taxonomy.
 
 Single source of truth for node types, relation types, and edge kinds. Reads
 from the registry tables (`knowledge_node_type_registry`,
@@ -28,7 +28,7 @@ from typing import Optional
 from .supabase_client import get_client
 
 
-# â”€â”€ Static canonical fallbacks (in sync with migration 039) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Static canonical fallbacks (in sync with migration 039) ──────────
 # These act as a fallback in case the registries are unreachable.
 
 CANONICAL_NODE_TYPES: tuple[str, ...] = (
@@ -87,7 +87,7 @@ EDGE_KINDS: tuple[str, ...] = (
 )
 
 V21_RELATIONS: tuple[dict[str, object], ...] = (
-    {"relation_type": "contains", "label": "contÃ©m", "edge_kind": "primary", "default_weight": 0.90},
+    {"relation_type": "contains", "label": "contém", "edge_kind": "primary", "default_weight": 0.90},
     {"relation_type": "targets", "label": "direciona para", "edge_kind": "secondary", "default_weight": 0.85},
     {"relation_type": "represents", "label": "representa", "edge_kind": "secondary", "default_weight": 0.90},
     {"relation_type": "uses_asset", "label": "usa asset", "edge_kind": "secondary", "default_weight": 0.85},
@@ -100,7 +100,7 @@ V21_RELATIONS: tuple[dict[str, object], ...] = (
 )
 
 
-# â”€â”€ Cached registry snapshot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Cached registry snapshot ─────────────────────────────────────────
 
 _CACHE_TTL_SECONDS = 60.0
 _cache: dict[str, object] = {
@@ -169,7 +169,7 @@ def invalidate_cache() -> None:
     _cache["fetched_at"] = 0.0
 
 
-# â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Public API ───────────────────────────────────────────────────────
 
 
 def canonical_node_type(raw: Optional[str]) -> Optional[str]:
@@ -337,4 +337,3 @@ def taxonomy_snapshot() -> dict:
         "primary_chain": canonical_chain(),
         "edge_kinds": list(EDGE_KINDS),
     }
-

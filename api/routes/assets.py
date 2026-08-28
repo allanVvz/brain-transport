@@ -1,19 +1,19 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Asset card upload & connect routes.
 
 Two distinct flows are served by this module:
 
-1. POST /assets/upload â€” Card ASSET. Multipart upload that:
+1. POST /assets/upload — Card ASSET. Multipart upload that:
    - stores the file in Supabase Storage (assets-raw bucket)
    - inserts public.assets row (upload_context='asset_card')
    - runs the asset_pipeline and writes public.asset_readings rows
    - creates knowledge_items (content_type='asset', status='pending')
    - bootstraps a knowledge_node node_type='asset' and edges:
-       parent â†’ asset      (relation_type='uses_asset')
-       asset â†’ gallery     (relation_type='gallery_asset')
+       parent → asset      (relation_type='uses_asset')
+       asset → gallery     (relation_type='gallery_asset')
    - never auto-creates knowledge_rag_entries (gated by is_rag_eligible)
 
-2. The Sofia/CRIAR upload remains in /kb-intake/upload â€” it persists in
+2. The Sofia/CRIAR upload remains in /kb-intake/upload — it persists in
    public.assets only when the file can be tied to a persona and Graph evidence.
 """
 from __future__ import annotations
@@ -164,7 +164,7 @@ def _log_asset_flow(
         source="routes.assets",
     )
 
-# â”€â”€ Type guards (Gallery only accepts asset connections) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Type guards (Gallery only accepts asset connections) ─────────────────
 _GALLERY_ONLY_FROM = {"asset"}
 
 
@@ -613,7 +613,7 @@ def _repair_asset_graph_if_possible(asset: dict) -> dict:
         return {**asset, "graph_status": "repair_failed"}
 
 
-# â”€â”€ POST /assets/upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── POST /assets/upload ───────────────────────────────────────────────────
 
 @router.post("/upload")
 async def upload_asset(
@@ -629,7 +629,7 @@ async def upload_asset(
     if not persona_id:
         raise HTTPException(400, "persona invalida")
     if not branch_hint:
-        # Asset cannot live without a branch â€” UI must pick one.
+        # Asset cannot live without a branch — UI must pick one.
         raise HTTPException(
             422,
             {"error": "branch_required", "needs_parent": True, "message": "Escolha o galho do grafo onde o asset sera conectado."},
@@ -906,7 +906,7 @@ async def _upload_asset_impl(
 
     # 6) Insert `![[slug]]` (Obsidian-style embed) into the parent card's
     # markdown so the image is anchored inside the card's .md. The parent
-    # card is brand / briefing / product / copy / faq â€” whichever was
+    # card is brand / briefing / product / copy / faq — whichever was
     # selected as branch_hint at upload time.
     parent_card_md_appended = False
     image_slug = (mirror or {}).get("slug") or fname
@@ -937,7 +937,7 @@ async def _upload_asset_impl(
     }
 
 
-# â”€â”€ GET /assets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── GET /assets ───────────────────────────────────────────────────────────
 
 @router.get("")
 def list_assets_route(
@@ -981,7 +981,7 @@ def _asset_list_payload(row: dict) -> dict:
     }
 
 
-# â”€â”€ GET /assets/{id} â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── GET /assets/{id} ──────────────────────────────────────────────────────
 
 def _kind_label(kind: str) -> str:
     return {
@@ -1039,7 +1039,7 @@ def _compose_markdown_from_asset(asset: dict, readings: list[dict]) -> str:
         visual = full_visual
 
     lines = [
-        f"# Asset â€” {title}",
+        f"# Asset — {title}",
         "",
         "## Tipo",
         _kind_label(str(kind)),
@@ -1070,7 +1070,7 @@ def _compose_markdown_from_asset(asset: dict, readings: list[dict]) -> str:
 
 def _graph_state(asset: dict) -> dict:
     """Compact view of where the asset lives in the graph. Drives the
-    'EstÃ¡ no grafo de conhecimento' badge in the dashboard detail modal."""
+    'Está no grafo de conhecimento' badge in the dashboard detail modal."""
     knowledge_node_id = _asset_graph_ref(asset, "knowledge_node_id")
     gallery_edge_id = _asset_graph_ref(asset, "gallery_edge_id")
     parent_node_id = _asset_graph_ref(asset, "parent_node_id")
@@ -1146,7 +1146,7 @@ def get_asset_route(asset_id: str, request: Request):
     }
 
 
-# â”€â”€ GET /assets/{id}/media â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── GET /assets/{id}/media ────────────────────────────────────────────────
 
 def _parse_range(header: Optional[str], size: int) -> Optional[tuple[int, int]]:
     """Parse a single ``bytes=start-end`` range. Multi-range is not supported."""
@@ -1180,7 +1180,7 @@ def get_asset_media(asset_id: str, request: Request, range: Optional[str] = Head
     customer's photo or voice note, which live in the private
     ``whatsapp-media`` bucket.
 
-    Range support is what makes ``<audio>`` seekable â€” without a 206 the
+    Range support is what makes ``<audio>`` seekable — without a 206 the
     browser can only play a voice note straight through.
     """
     asset = supabase_client.get_asset(asset_id)
@@ -1224,7 +1224,7 @@ def get_asset_media(asset_id: str, request: Request, range: Optional[str] = Head
     return Response(content=data, media_type=media_type, headers=headers)
 
 
-# â”€â”€ POST /assets/{id}/ensure-gallery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── POST /assets/{id}/ensure-gallery ──────────────────────────────────────
 
 @router.post("/{asset_id}/ensure-gallery")
 def ensure_gallery_for_asset(asset_id: str, request: Request):
@@ -1338,7 +1338,7 @@ def ensure_gallery_for_asset(asset_id: str, request: Request):
     }
 
 
-# â”€â”€ POST /assets/{id}/connect â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── POST /assets/{id}/connect ─────────────────────────────────────────────
 
 class ConnectBody(BaseModel):
     parent_node_id: str
@@ -1455,7 +1455,7 @@ def connect_asset(asset_id: str, body: ConnectBody, request: Request):
     return {"success": True, "edge": edge, "gallery_edge": gallery_edge}
 
 
-# â”€â”€ Landing-page slot bindings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Landing-page slot bindings ────────────────────────────────────────────
 #
 # A landing page has fixed surfaces (hero, product_group_cover,
 # campaign_footer). Binding an asset to a slot is just an upsert of a
@@ -1547,7 +1547,7 @@ def _ensure_campaign_node_for_slot(
         "persona_id": persona_id,
         "node_type": "campaign",
         "slug": slug,
-        "title": label or f"{cfg['label']} Â· {collection_slug}",
+        "title": label or f"{cfg['label']} · {collection_slug}",
         "summary": f"Landing slot '{slot.value}' for collection '{collection_slug}'.",
         "tags": ["landing", "campaign", slot.value],
         "metadata": {
@@ -1690,7 +1690,7 @@ def _resolve_slot_parent(
         if not node:
             raise HTTPException(404, f"{parent_type} nao encontrado: {target_slug}")
         return node
-    # hero / footer â†’ canonical campaign for the collection. The slot lives in
+    # hero / footer → canonical campaign for the collection. The slot lives in
     # edge metadata; it must not materialise as a separate "hero" graph node.
     if not collection_slug:
         raise HTTPException(422, f"{slot.value} precisa de collection_slug.")
@@ -2587,4 +2587,3 @@ def delete_asset_route(asset_id: str, request: Request):
         "removed_edge_ids": removed_edges,
         "storage_deleted": storage_deleted,
     }
-

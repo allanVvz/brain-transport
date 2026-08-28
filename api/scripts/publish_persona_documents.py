@@ -1,4 +1,4 @@
-﻿"""Compile and publish one persona's canonical Markdown documents."""
+"""Compile and publish one persona's canonical Markdown documents."""
 from __future__ import annotations
 
 import argparse
@@ -85,4 +85,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

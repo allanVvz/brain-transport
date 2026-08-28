@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
@@ -23,4 +23,3 @@ class Insight(InsightCreate):
     status: str = "open"
     created_at: datetime
     resolved_at: Optional[datetime] = None
-

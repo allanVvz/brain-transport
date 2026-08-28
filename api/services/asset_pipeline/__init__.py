@@ -1,11 +1,11 @@
-﻿# -*- coding: utf-8 -*-
-"""Asset reading pipeline â€” single entry point.
+# -*- coding: utf-8 -*-
+"""Asset reading pipeline — single entry point.
 
 run_pipeline(file_bytes, mime, ctx) -> AssetReadingBundle
 
 The pipeline is shared by:
-- /kb-intake/upload (Sofia/CRIAR â€” file becomes immediate session context)
-- /assets/upload    (ASSET card â€” also creates knowledge_item + node + edges)
+- /kb-intake/upload (Sofia/CRIAR — file becomes immediate session context)
+- /assets/upload    (ASSET card — also creates knowledge_item + node + edges)
 
 The pipeline persists nothing on its own. The caller decides what to write to
 public.assets / public.asset_readings / knowledge_items.
@@ -32,7 +32,7 @@ from .schemas import (
 logger = logging.getLogger("asset_pipeline")
 
 # faster-whisper decodes through ffmpeg, which picks its demuxer from the file
-# extension â€” so the temp file must keep a truthful one.
+# extension — so the temp file must keep a truthful one.
 _AUDIO_SUFFIX_BY_MIME = {
     "audio/ogg": ".ogg",
     "audio/opus": ".opus",
@@ -47,7 +47,7 @@ _AUDIO_SUFFIX_BY_MIME = {
 
 def _audio_suffix(mime: Optional[str], filename: Optional[str]) -> str:
     """Best-effort file extension for an audio payload."""
-    # WhatsApp sends "audio/ogg; codecs=opus" â€” strip the parameters.
+    # WhatsApp sends "audio/ogg; codecs=opus" — strip the parameters.
     base = (mime or "").split(";")[0].strip().lower()
     if base in _AUDIO_SUFFIX_BY_MIME:
         return _AUDIO_SUFFIX_BY_MIME[base]
@@ -304,7 +304,7 @@ def compose_markdown(bundle: AssetReadingBundle, persona_slug: Optional[str], br
         "unknown":          "Desconhecido",
     }.get(kind, kind)
     lines = [
-        f"# Asset â€” {bundle.rename.title}",
+        f"# Asset — {bundle.rename.title}",
         "",
         "## Tipo",
         kind_label,
@@ -339,4 +339,3 @@ __all__ = [
     "AssetPipelineContext",
     "AssetReadingBundle",
 ]
-

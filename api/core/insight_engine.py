@@ -1,4 +1,4 @@
-﻿from schemas.context import Context
+from schemas.context import Context
 from services import supabase_client
 from datetime import datetime
 
@@ -18,4 +18,3 @@ def record(ctx: Context, agent_result: dict, latency_ms: int) -> None:
         "status": "success" if agent_result.get("reply") else "error",
         "created_at": datetime.utcnow().isoformat(),
     })
-

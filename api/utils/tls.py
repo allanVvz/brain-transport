@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 from functools import lru_cache
@@ -36,4 +36,3 @@ def configure_trust_store() -> str:
     os.environ.setdefault("REQUESTS_CA_BUNDLE", bundle)
     os.environ.setdefault("CURL_CA_BUNDLE", bundle)
     return bundle
-

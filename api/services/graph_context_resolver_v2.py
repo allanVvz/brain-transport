@@ -1,4 +1,4 @@
-﻿"""Explainable context resolution over one activated action subgraph."""
+"""Explainable context resolution over one activated action subgraph."""
 from __future__ import annotations
 
 import math
@@ -30,7 +30,7 @@ INTENT_PROFILES: dict[str, dict[str, Any]] = {
 
 
 def _tokens(value: str) -> set[str]:
-    return {token for token in re.findall(r"[\wÃ€-Ã¿-]+", value.lower()) if len(token) > 1}
+    return {token for token in re.findall(r"[\wÀ-ÿ-]+", value.lower()) if len(token) > 1}
 
 
 def _search_text(node: Node) -> str:
@@ -201,4 +201,3 @@ def resolve_context(
         "node_count": len(selected),
         "estimated_tokens": token_count,
     }
-

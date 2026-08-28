@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 import re
@@ -19,11 +19,11 @@ _SESSION_MEMORY: dict[str, dict[str, Any]] = {}
 # D2: the Orquestrar operating prompt lives in agents/sofia_orquestrar.md and is
 # loaded at runtime, with a concise inline fallback when the file is absent.
 _INLINE_OPERATING_PROMPT = (
-    "Sofia em modo Graph: ediÃ§Ã£o cirÃºrgica do graph_json canÃ´nico. "
-    "Resolva persona/node/operaÃ§Ã£o, valide a cadeia canÃ´nica "
+    "Sofia em modo Graph: edição cirúrgica do graph_json canônico. "
+    "Resolva persona/node/operação, valide a cadeia canônica "
     "(persona->brand->briefing->campaign->audience->product_group->product->copy->faq->embedded), "
-    "e emita um Patch (PatchOperation). FAQ no menor nÃ³; FAQ->Embedded sÃ³ apÃ³s aprovaÃ§Ã£o; "
-    "persona/embedded/gallery sÃ£o protegidos."
+    "e emita um Patch (PatchOperation). FAQ no menor nó; FAQ->Embedded só após aprovação; "
+    "persona/embedded/gallery são protegidos."
 )
 
 
@@ -88,7 +88,7 @@ def _normalise_session_id(value: Optional[str]) -> str:
 
 
 def _supabase_plan_store_enabled() -> bool:
-    return bool((os.getenv("SUPABASE_URL") or "").strip() and (os.getenv("BRAIN_TRANSPORT_DB_KEY") or "").strip())
+    return bool((os.getenv("SUPABASE_URL") or "").strip() and (os.getenv("SUPABASE_SERVICE_KEY") or "").strip())
 
 
 def _load_supabase_state(session_id: str) -> Optional[dict[str, Any]]:
@@ -284,9 +284,9 @@ def _validate_plan_json(plan_json: dict[str, Any]) -> dict[str, Any]:
     blocking: list[dict[str, str]] = []
 
     if not plan.get("faq"):
-        suggestions.append({"code": "FAQ_RECOMMENDED", "message": "Adicionar FAQ melhora cobertura de objeÃ§Ãµes, mas nÃ£o bloqueia criaÃ§Ã£o."})
+        suggestions.append({"code": "FAQ_RECOMMENDED", "message": "Adicionar FAQ melhora cobertura de objeções, mas não bloqueia criação."})
     if not plan.get("rule"):
-        suggestions.append({"code": "RULE_RECOMMENDED", "message": "Adicionar regra comercial Ã© recomendado, mas nÃ£o bloqueia criaÃ§Ã£o."})
+        suggestions.append({"code": "RULE_RECOMMENDED", "message": "Adicionar regra comercial é recomendado, mas não bloqueia criação."})
 
     # Map every node slug -> its node type (the section name) so we can validate
     # parent hierarchy by TYPE using the SHARED graph_validation rules (same as
@@ -316,7 +316,7 @@ def _validate_plan_json(plan_json: dict[str, Any]) -> dict[str, Any]:
                         if viol:
                             blocking.append({"code": "INVALID_PARENT", "message": f"{section}[{idx}] {viol}"})
 
-    # Item #1 â€” every non-top-level node must have a complete path to the persona.
+    # Item #1 — every non-top-level node must have a complete path to the persona.
     # Walk parent_slug up: rooted when it reaches "self"/persona, a top-level type
     # under persona, or an existing graph node (parent not declared in this plan).
     parent_by_slug: dict[str, str] = {}
@@ -341,7 +341,7 @@ def _validate_plan_json(plan_json: dict[str, Any]) -> dict[str, Any]:
                     rooted = slug_to_type.get(cur) in graph_validation.TOP_LEVEL_TYPES
                     break
                 if parent in seen:
-                    break  # cycle â€” reported via markers
+                    break  # cycle — reported via markers
                 if parent not in parent_by_slug:
                     rooted = True  # parent is an existing graph node
                     break
@@ -523,7 +523,7 @@ def run_graph_agent_command(
             plan["product"].append({"slug": "produto", "title": "Produto", "parent_slug": aud})
         return str(plan["product"][0]["slug"])
 
-    # #6/#7 â€” persist skip decisions in the session state.
+    # #6/#7 — persist skip decisions in the session state.
     if re.search(r"\bsem\s+assets?\b|pular\s+assets?|skip\s+assets?", text):
         state["skip_assets"] = True
     if re.search(r"\bsem\s+oferta", text):
@@ -531,7 +531,7 @@ def run_graph_agent_command(
     if re.search(r"\bsem\s+regra", text):
         state["skip_rule"] = True
 
-    # #2 â€” materialize product_group nodes from EXPLICIT names (never invented).
+    # #2 — materialize product_group nodes from EXPLICIT names (never invented).
     if re.search(r"\bgrupos?\b|product[_ ]group", text):
         aud = _ensure_audience()
         for name in _parse_group_names(command):
@@ -539,7 +539,7 @@ def run_graph_agent_command(
             if not any(g.get("slug") == gslug for g in plan["product_group"]):
                 plan["product_group"].append({"slug": gslug, "title": name, "parent_slug": aud})
 
-    # #4 â€” offer must have an exit (copy under it).
+    # #4 — offer must have an exit (copy under it).
     if re.search(r"\boferta\b", text) and not state.get("skip_offer"):
         prod = _ensure_product()
         if not any(o.get("slug") == "oferta" for o in plan["offer"]):
@@ -547,7 +547,7 @@ def run_graph_agent_command(
         if not any(c.get("parent_slug") == "oferta" for c in plan["copy"]):
             plan["copy"].append({"slug": "copy-oferta", "title": "Copy da Oferta", "parent_slug": "oferta"})
 
-    # #5 â€” rule connected to scope, and FAQ anchored to a commercial leaf.
+    # #5 — rule connected to scope, and FAQ anchored to a commercial leaf.
     if re.search(r"\bregra\b", text) and not state.get("skip_rule"):
         if not plan["rule"]:
             plan["rule"].append({"slug": "regra-comercial", "title": "Regra Comercial", "parent_slug": "self"})
@@ -560,7 +560,7 @@ def run_graph_agent_command(
         if anchor and not any(f.get("slug") == "faq-1" for f in plan["faq"]):
             plan["faq"].append({"slug": "faq-1", "title": "FAQ", "parent_slug": anchor})
 
-    # #8 â€” "resolver pendencias" runs a real repair pass.
+    # #8 — "resolver pendencias" runs a real repair pass.
     repaired = False
     if re.search(r"resolver\s+pend|corrigir|consertar|\brepair\b", text):
         plan, repaired = _repair_graph_plan(plan)
@@ -640,9 +640,9 @@ def apply_plan_json_patch(
             if len(parts) > 2:
                 title = " ".join(parts[-2:]).strip().title()
             next_plan["plan"]["product"].append({"title": title, "parent_slug": None, "status": "pending_parent"})
-        elif "audience" in text or "audiencia" in text or "audiÃªncia" in text or "publico" in text or "pÃºblico" in text:
+        elif "audience" in text or "audiencia" in text or "audiência" in text or "publico" in text or "público" in text:
             if not next_plan["plan"]["audience"]:
-                title = "Audience PadrÃ£o" if ("padrao" in text or "padr" in text or "default" in text) else "Audience"
+                title = "Audience Padrão" if ("padrao" in text or "padr" in text or "default" in text) else "Audience"
                 slug = "audiencia-padrao" if ("padrao" in text or "padr" in text or "default" in text) else "audience"
                 next_plan["plan"]["audience"].append({"slug": slug, "title": title, "parent_slug": None, "status": "pending_parent"})
         elif "campanha" in text or "campaign" in text:
@@ -704,7 +704,7 @@ def plan_json_partial_success_message(plan_json: dict[str, Any], command: str) -
             return f"Criei a campanha {title} no plano. Falta definir abaixo de qual Briefing/Brand ela deve ficar."
         return f"Criei a campanha {title} no plano."
 
-    if ("audience" in text or "publico" in text or "pÃƒÂºblico" in text) and plan.get("audience"):
+    if ("audience" in text or "publico" in text or "pÃºblico" in text) and plan.get("audience"):
         item = plan["audience"][-1]
         title = str(item.get("title") or "Audience").strip()
         if not str(item.get("parent_slug") or "").strip():
@@ -1064,7 +1064,7 @@ def plan_graph_command(
         }
     )
 
-    # Real canonical-chain validation (was a stub) â€” shared rules with Create.
+    # Real canonical-chain validation (was a stub) — shared rules with Create.
     canonical_violations = _validate_patch_canonical(graph_patch)
     for call in tool_calls:
         if call.get("name") == "validate-canonical-chain":
@@ -1093,4 +1093,3 @@ def plan_graph_command(
         "threshold": threshold,
         "needs_clarification": False,
     }
-

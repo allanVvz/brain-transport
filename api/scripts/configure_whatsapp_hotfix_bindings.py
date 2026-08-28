@@ -1,4 +1,4 @@
-﻿"""Apply the production-safe Meta/Evolution WhatsApp binding contract.
+"""Apply the production-safe Meta/Evolution WhatsApp binding contract.
 
 This script never prints or rotates credentials.  The existing Meta token is
 copied from the process environment into its binding using the configured
@@ -53,7 +53,7 @@ def _canonical_metadata(binding: dict) -> dict:
 
 def _is_complete_n8n_agents_binding(binding: dict) -> bool:
     """True only for a binding already fully, validly configured for the
-    agentic engine â€” never for a half-configured one (e.g. decision_owner
+    agentic engine — never for a half-configured one (e.g. decision_owner
     flipped to n8n_agents without a workflow id or webhook), which stays
     exactly as dangerous as before and must still be reset to the safe
     deterministic baseline."""
@@ -102,13 +102,13 @@ def main() -> None:
 
     if args.apply:
         # Either binding only gets reset if it is NOT already a complete,
-        # valid n8n_agents configuration â€” a half-configured one (missing
+        # valid n8n_agents configuration — a half-configured one (missing
         # workflow id or webhook) is exactly as dangerous as before and
         # still gets reset. Confirmed live 2026-08-01: this reset used to
         # unconditionally revert Aurora's decision_owner on every deploy,
         # silently undoing an intentional activation of the agentic flow.
         # Confirmed live again 2026-08-02: Meta/Baita had the same
-        # unconditional reset with no exception at all â€” "Meta never uses
+        # unconditional reset with no exception at all — "Meta never uses
         # the agentic engine" stopped being true the moment the settings
         # UI let an operator switch any persona to n8n_agents, and this
         # script silently undid that choice on the very next deploy.
@@ -186,4 +186,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

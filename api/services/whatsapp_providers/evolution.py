@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import base64
 import os
@@ -155,7 +155,7 @@ class EvolutionWhatsAppProvider:
         Baileys keeps the media encrypted on WhatsApp's CDN, so there is no
         plain URL to GET: Evolution decrypts it on demand and hands it back
         base64-encoded. Called from the media ingest worker, never from the
-        webhook â€” the webhook must return before this round trip completes.
+        webhook — the webhook must return before this round trip completes.
         """
         body = self._request(
             "POST",
@@ -245,4 +245,3 @@ class EvolutionWhatsAppProvider:
             "media": media,
             "raw": data,
         }]
-

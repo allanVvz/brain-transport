@@ -1,4 +1,4 @@
-﻿"""Create the optional first production admin, without a known default login."""
+"""Create the optional first production admin, without a known default login."""
 from __future__ import annotations
 
 import os
@@ -13,4 +13,3 @@ if __name__ == "__main__":
         raise SystemExit("AI_BRAIN_SEED_ADMIN_PASSWORD is required when seeding an admin.")
     else:
         create_auth_user()
-

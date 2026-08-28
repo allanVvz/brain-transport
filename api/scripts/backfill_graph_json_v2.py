@@ -1,4 +1,4 @@
-﻿"""Publish missing canonical Graph JSON v2 documents for existing personas."""
+"""Publish missing canonical Graph JSON v2 documents for existing personas."""
 from __future__ import annotations
 
 import argparse
@@ -53,4 +53,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

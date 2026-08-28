@@ -1,4 +1,4 @@
-﻿import base64
+import base64
 import json
 import logging
 from uuid import UUID
@@ -36,7 +36,7 @@ def _decode_message_cursor(value: str | None) -> tuple[str | None, int | None]:
         payload = json.loads(base64.urlsafe_b64decode(value + padding).decode("utf-8"))
         return str(payload["created_at"]), int(payload["id"])
     except Exception as exc:
-        raise HTTPException(400, detail="Cursor de mensagens invÃ¡lido.") from exc
+        raise HTTPException(400, detail="Cursor de mensagens inválido.") from exc
 
 
 def _encode_message_cursor(row: dict | None) -> str | None:
@@ -391,4 +391,3 @@ def recent_messages(
         )
     rows.sort(key=lambda item: item.get("created_at") or "", reverse=True)
     return rows[:500]
-

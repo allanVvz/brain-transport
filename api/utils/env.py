@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 from typing import Any
@@ -63,7 +63,7 @@ def get_backend_env() -> dict[str, Any]:
         "allowed_origins": configured_origins,
         "allowed_origin_regex": allowed_origin_regex,
         "supabase_url": (os.environ.get("SUPABASE_URL") or "").strip(),
-        "supabase_service_key": (os.environ.get("BRAIN_TRANSPORT_DB_KEY") or "").strip(),
+        "supabase_service_key": (os.environ.get("SUPABASE_SERVICE_KEY") or "").strip(),
         "is_production": is_production_runtime(),
         "run_embedded_workers": _bool_env("RUN_EMBEDDED_WORKERS"),
     }
@@ -78,10 +78,9 @@ def validate_backend_env(strict: bool | None = None) -> list[str]:
         if not env["supabase_url"]:
             missing.append("SUPABASE_URL")
         if not env["supabase_service_key"]:
-            missing.append("BRAIN_TRANSPORT_DB_KEY")
+            missing.append("SUPABASE_SERVICE_KEY")
         if not env["allowed_origins"]:
             missing.append("ALLOWED_ORIGINS")
         if not is_strong_auth_secret(get_auth_secret()):
             missing.append("AI_BRAIN_AUTH_SECRET (minimum 32 random characters)")
     return missing
-

@@ -1,5 +1,5 @@
-﻿# -*- coding: utf-8 -*-
-"""Local OCR adapters â€” paddle, easy, tesseract, mock.
+# -*- coding: utf-8 -*-
+"""Local OCR adapters — paddle, easy, tesseract, mock.
 
 Selection order via env `ASSET_OCR_BACKEND` (comma list). The first adapter
 whose `available()` returns True is used. Falls back to mock so the pipeline
@@ -19,10 +19,10 @@ logger = logging.getLogger("asset_pipeline.ocr")
 _AI_FALLBACK_TEXT_THRESHOLD = 8
 _AI_FALLBACK_CONFIDENCE_THRESHOLD = 0.45
 
-_MOCK_TEXT = "(OCR ainda nao habilitado â€” fallback IA quando necessario)"
+_MOCK_TEXT = "(OCR ainda nao habilitado — fallback IA quando necessario)"
 
 
-# â”€â”€ Adapters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Adapters ───────────────────────────────────────────────────────────────
 
 def _try_paddle(file_bytes: bytes) -> Optional[tuple[str, float]]:
     try:
@@ -142,4 +142,3 @@ def run(file_bytes: bytes) -> OcrResult:
         needs_ai_fallback=True,
         error=last_err,
     )
-

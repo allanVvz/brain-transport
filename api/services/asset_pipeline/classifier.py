@@ -1,5 +1,5 @@
-﻿# -*- coding: utf-8 -*-
-"""Local image/file classifier â€” no external API calls.
+# -*- coding: utf-8 -*-
+"""Local image/file classifier — no external API calls.
 
 Decides kind, whether OCR is needed, and a confidence score. Uses Pillow when
 available; falls back to mime + extension heuristics otherwise.
@@ -138,4 +138,3 @@ def detect(file_bytes: bytes, mime: Optional[str], filename: Optional[str]) -> C
         height=height,
         extra={"mime": mime, "ext": ext, "size": len(file_bytes or b"")},
     )
-

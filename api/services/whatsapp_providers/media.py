@@ -1,4 +1,4 @@
-﻿"""Canonical inbound-media descriptor shared by every WhatsApp provider.
+"""Canonical inbound-media descriptor shared by every WhatsApp provider.
 
 Evolution (Baileys) and Meta Cloud describe an attachment with completely
 different payload shapes, and each needs a different call to fetch the bytes
@@ -66,7 +66,7 @@ def build_descriptor(
     """Build the canonical descriptor stored in ``lead_buffer.payload.media``.
 
     ``fetch_ref`` is the provider-specific handle the ingest worker needs to
-    retrieve the bytes â€” a Meta ``media_id``, or the Evolution message key.
+    retrieve the bytes — a Meta ``media_id``, or the Evolution message key.
     """
     return {
         "provider": provider,
@@ -83,4 +83,3 @@ def build_descriptor(
         "fetch_ref": fetch_ref or {},
         "reading_status": "pending",
     }
-

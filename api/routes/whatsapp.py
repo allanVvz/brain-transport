@@ -1,4 +1,4 @@
-﻿"""Canonical Meta WhatsApp ingress and delivery callbacks.
+"""Canonical Meta WhatsApp ingress and delivery callbacks.
 
 n8n is intentionally only a transport: these routes persist the source event
 before any downstream work and never execute a commercial prompt.
@@ -300,4 +300,3 @@ def outbound_result(body: OutboundResult, x_webhook_token: str | None = Header(N
         "status": result.get("status"),
         "deduplicated": bool(result.get("deduplicated")),
     }
-

@@ -1,4 +1,4 @@
-﻿"""Place inbound WhatsApp media in the knowledge graph.
+"""Place inbound WhatsApp media in the knowledge graph.
 
 The shape is::
 
@@ -6,7 +6,7 @@ The shape is::
 
 A `conversation` node stands for one lead's thread. It hangs under the
 audience the lead belongs to, which hangs under the campaign that originated
-the outreach â€” so a photo a customer sends is traceable back to the campaign
+the outreach — so a photo a customer sends is traceable back to the campaign
 that prompted it, which is exactly the attribution the CRM needs.
 
 When no campaign can be attributed (an organic contact who messaged on their
@@ -85,7 +85,7 @@ def ensure_conversation_node(
         "source_table": "leads",
         "node_type": "conversation",
         "slug": f"conversa-{lead_id}",
-        "title": f"Conversa â€” {display}",
+        "title": f"Conversa — {display}",
         "summary": f"Thread de WhatsApp com {display}.",
         "tags": ["conversa", "whatsapp"],
         "metadata": {
@@ -124,7 +124,7 @@ def attach_inbound_asset(asset_id: str) -> dict[str, Any]:
     """Hang a received file under its lead's conversation node.
 
     Called by the media ingest worker after the bytes are stored, and only
-    then â€” the graph should describe files that actually exist.
+    then — the graph should describe files that actually exist.
     """
     asset = supabase_client.get_asset(asset_id)
     if not asset:
@@ -178,4 +178,3 @@ def attach_inbound_asset(asset_id: str) -> dict[str, Any]:
         "gallery_node_id": (result.get("gallery_node") or {}).get("id"),
         "asset_gallery_edge_id": (result.get("gallery_edge") or {}).get("id"),
     }
-

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from .evolution import EvolutionWhatsAppProvider
 from .meta import MetaWhatsAppProvider
@@ -13,4 +13,3 @@ def get_provider(name: str):
     if name == "mock":
         return MockWhatsAppProvider()
     raise ValueError(f"Unsupported WhatsApp provider: {name}")
-

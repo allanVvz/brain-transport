@@ -1,4 +1,4 @@
-﻿"""Read-only dry-run for non-service facts that equal a published service.
+"""Read-only dry-run for non-service facts that equal a published service.
 
 This script never repairs or deletes rows. Historical correction remains a
 separate, explicitly authorized CAS operation.
@@ -151,4 +151,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

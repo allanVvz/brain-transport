@@ -1,4 +1,4 @@
-﻿"""Publish only Aurora's canonical graph fixture; never creates accounts."""
+"""Publish only Aurora's canonical graph fixture; never creates accounts."""
 from __future__ import annotations
 
 import argparse
@@ -74,11 +74,11 @@ def build_graph() -> GraphJson:
     ]
 
     def field_validation(field_key: str) -> dict:
-        invalid_response = "NÃ£o consegui entender essa informaÃ§Ã£o com seguranÃ§a."
+        invalid_response = "Não consegui entender essa informação com segurança."
         if field_key == "servico":
             return {
                 "mode": "enum", "values": service_values,
-                "invalid_response": "NÃ£o entendi exatamente qual serviÃ§o vocÃª quis dizer.",
+                "invalid_response": "Não entendi exatamente qual serviço você quis dizer.",
             }
         if field_key == "objective":
             return {
@@ -91,20 +91,20 @@ def build_graph() -> GraphJson:
                     {
                         "value": "continuar_cuidar_proteger",
                         "aliases": [
-                            "continuar com o veÃ­culo e cuidar bem dele",
+                            "continuar com o veículo e cuidar bem dele",
                             "continuar com o carro",
-                            "cuidado e proteÃ§Ã£o",
+                            "cuidado e proteção",
                         ],
                     },
                 ],
-                "invalid_response": "NÃ£o consegui identificar se o objetivo Ã© vender ou continuar cuidando do veÃ­culo.",
+                "invalid_response": "Não consegui identificar se o objetivo é vender ou continuar cuidando do veículo.",
             }
         if field_key == "can_visit_in_person":
             return {
                 "mode": "enum",
                 "values": [
                     {"value": True, "aliases": ["sim", "consigo levar", "posso levar"]},
-                    {"value": False, "aliases": ["nÃ£o", "prefiro seguir por aqui", "nÃ£o consigo levar"]},
+                    {"value": False, "aliases": ["não", "prefiro seguir por aqui", "não consigo levar"]},
                 ],
                 "invalid_response": invalid_response,
             }
@@ -114,7 +114,7 @@ def build_graph() -> GraphJson:
             "nome_cliente": {
                 "semantic_type": "human_full_name",
                 "description": "Nome e sobrenome completos informados pelo cliente.",
-                "examples": ["Beatriz Souza", "JosÃ© da Silva", "Ana Paula Lima"],
+                "examples": ["Beatriz Souza", "José da Silva", "Ana Paula Lima"],
                 # The model reads a name far better than any string
                 # comparison can. Above this confidence its reading stands on
                 # its own (evidence and shape are still proved by the
@@ -128,24 +128,24 @@ def build_graph() -> GraphJson:
                 "confirmation_policy": "last_resort",
             },
             "modelo_veiculo": {
-                "description": "Modelo ou identificaÃ§Ã£o comercial do veÃ­culo.",
+                "description": "Modelo ou identificação comercial do veículo.",
                 "examples": ["Onix", "Civic", "Corolla Cross"],
             },
             "condicao": {
-                "description": "Relato literal do estado atual ou incÃ´modo percebido no veÃ­culo.",
+                "description": "Relato literal do estado atual ou incômodo percebido no veículo.",
                 "examples": ["riscos na porta", "bancos manchados"],
             },
             "vehicle_color": {
-                "description": "Cor informada para o veÃ­culo.",
+                "description": "Cor informada para o veículo.",
                 "examples": ["prata", "preto", "azul"],
             },
             "reclamacao_relato": {
-                "description": "Relato literal do cliente sobre a ocorrÃªncia reclamada.",
+                "description": "Relato literal do cliente sobre a ocorrência reclamada.",
                 "examples": ["o problema voltou depois do atendimento"],
             },
         }.get(field_key) or {
-            "description": "InformaÃ§Ã£o comercial livre declarada por este node.",
-            "examples": ["informaÃ§Ã£o fornecida pelo cliente"],
+            "description": "Informação comercial livre declarada por este node.",
+            "examples": ["informação fornecida pelo cliente"],
         }
         return {"mode": "semantic", **semantic, "invalid_response": invalid_response}
 
@@ -201,7 +201,7 @@ def build_graph() -> GraphJson:
                 "value_schema": value_schema(field_key),
                 "validation": field_validation(field_key),
                 "normalization": (
-                    "Retorne quatro dÃ­gitos." if field_key == "vehicle_year" else None
+                    "Retorne quatro dígitos." if field_key == "vehicle_year" else None
                 ),
                 "depends_on": [],
                 "condition": None,
@@ -286,10 +286,10 @@ def build_graph() -> GraphJson:
             claims.extend([
                 {"claim_type": "availability", "policy": {"mode": "informational"},
                  "evidence_node_ids": [node.id],
-                 "intent_aliases": ["disponibilidade", "vaga", "tem horÃ¡rio"]},
+                 "intent_aliases": ["disponibilidade", "vaga", "tem horário"]},
                 {"claim_type": "schedule", "policy": {"mode": "human_confirmation_required"},
                  "evidence_node_ids": [node.id],
-                 "intent_aliases": ["agenda", "agendamento", "confirmar horÃ¡rio"]},
+                 "intent_aliases": ["agenda", "agendamento", "confirmar horário"]},
             ])
             data["claims"] = claims
         elif node.node_type == "rule" and (
@@ -411,4 +411,3 @@ if __name__ == "__main__":
             "checksum": (v3_result or {}).get("publication", {}).get("checksum"),
         } if v3_result else None),
     }))
-

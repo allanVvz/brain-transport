@@ -1,4 +1,4 @@
-﻿import os
+import os
 import time
 import httpx
 from datetime import datetime, timezone
@@ -88,4 +88,3 @@ class HealthCheckWorker(BaseWorker):
                 headers={"x-api-key": api_key, "anthropic-version": "2023-06-01"},
             )
             return r.status_code == 200, int((time.monotonic() - t0) * 1000)
-

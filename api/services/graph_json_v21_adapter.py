@@ -1,4 +1,4 @@
-﻿"""In-memory adapter from published Graph JSON 2.0 to the 2.1 write model."""
+"""In-memory adapter from published Graph JSON 2.0 to the 2.1 write model."""
 from __future__ import annotations
 
 from typing import Any
@@ -133,4 +133,3 @@ def upgrade_to_v21(graph: GraphJson) -> GraphJson:
         upgraded_edges.append(edge)
     raw["edges"] = upgraded_edges
     return GraphJson.model_validate(raw)
-

@@ -1,4 +1,4 @@
-﻿import hmac
+import hmac
 import json
 import logging
 import os
@@ -22,7 +22,7 @@ _AGENTS = {
     "CLOSER": CloserAgent,
 }
 
-# Map agents_service role â†’ legacy agent class key.
+# Map agents_service role → legacy agent class key.
 # Followup falls back to SDR until a FollowupAgent class exists.
 _ROLE_TO_AGENT_KEY = {
     "sdr":      "SDR",
@@ -39,7 +39,7 @@ async def process(
     t0 = time.monotonic()
     correlation_id = f"classifier:{event.lead_ref or event.lead_id or int(time.time() * 1000)}"
 
-    # â”€â”€ Gate 0: persona routing mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Gate 0: persona routing mode ─────────────────────────────────────
     # When persona.process_mode == 'n8n', the Brain AI delegates the reply
     # to n8n. We only persist the inbound message and resolve the lead so
     # the dashboard sees the conversation. n8n is responsible for replying.
@@ -112,7 +112,7 @@ async def process(
 
     ctx = context_builder.build(event)
 
-    # â”€â”€ Gate 1: lead.ai_paused â†’ operador humano cuidando, nÃ£o responde â”€â”€
+    # ── Gate 1: lead.ai_paused → operador humano cuidando, não responde ──
     lead_data = supabase_client.get_lead_by_ref(ctx.lead.ref) if ctx.lead.ref else supabase_client.get_lead(event.lead_id)
     lead_data = lead_data or {}
     if lead_data.get("ai_paused"):
@@ -237,7 +237,7 @@ async def process(
     ctx.tags = tags
     ctx.funnel_stage = funnel_stage
 
-    # â”€â”€ Gate 2: role assignment para essa persona+stage estÃ¡ em humano? â”€â”€
+    # ── Gate 2: role assignment para essa persona+stage está em humano? ──
     # Se sim, pausa o lead e devolve sem rodar agente (handoff).
     handoff_reason: str | None = None
     try:
@@ -250,8 +250,8 @@ async def process(
 
     deterministic_mode = bool(event.persona_slug and load_catalog(Path(__file__).resolve().parents[1].parent / "docs" / "sdr", event.persona_slug).products)
     if agent_record is None and event.persona_slug and not deterministic_mode:
-        # Nenhum agente atribuÃ­do a esse role para essa persona â†’ humano.
-        # Pausa o lead pra o /process nÃ£o voltar a tentar enquanto operador
+        # Nenhum agente atribuído a esse role para essa persona → humano.
+        # Pausa o lead pra o /process não voltar a tentar enquanto operador
         # responde via dashboard. Manual resume via /leads/{id}/resume-ai.
         if ctx.lead.ref:
             try:
@@ -287,7 +287,7 @@ async def process(
             "handoff_reason": handoff_reason,
         }
 
-    # DecisÃ£o de rota: usa role do assignment se disponÃ­vel; senÃ£o decision_engine.
+    # Decisão de rota: usa role do assignment se disponível; senão decision_engine.
     route = _ROLE_TO_AGENT_KEY.get(role, decision_engine.decide(ctx))
     ctx.route_hint = route
 
@@ -369,4 +369,3 @@ async def process(
         "detected_fields": agent_result.get("detected_fields", {}),
         "latency_ms": latency_ms,
     }
-

@@ -1,4 +1,4 @@
-﻿"""Production-safe release contract checks; prints no secrets or user content."""
+"""Production-safe release contract checks; prints no secrets or user content."""
 from __future__ import annotations
 
 import json
@@ -26,12 +26,12 @@ def _validate_aurora_dialog(*, graph, version: int, checksum: str) -> dict:
         for node in graph.nodes
     ]
     cases = [
-        ("Quais serviÃ§os estÃ£o disponÃ­veis?", "list_services", "SDR", False),
+        ("Quais serviços estão disponíveis?", "list_services", "SDR", False),
         # price_disclosure == "human_only": the agent never states a value,
         # it answers with the published text and escalates to a person.
-        ("Quanto custa o polimento tÃ©cnico?", "consult_price", "HUMAN", True),
+        ("Quanto custa o polimento técnico?", "consult_price", "HUMAN", True),
         ("Quero reclamar da garantia", "exceptional_support", "HUMAN", True),
-        ("Quero agendar higienizaÃ§Ã£o interna", "request_booking", "SDR", False),
+        ("Quero agendar higienização interna", "request_booking", "SDR", False),
     ]
     results: list[dict] = []
     for message, expected_intent, expected_route, expected_handoff in cases:
@@ -106,7 +106,7 @@ def validate() -> dict:
     # 2026-08-06: this used to be a dict-equality check against hardcoded
     # totals (55 nodes, 27 faqs, ...) captured once from a specific content
     # snapshot. Aurora's FAQ/node content changes routinely as it's
-    # authored â€” that made this gate fail release after release for
+    # authored — that made this gate fail release after release for
     # reasons that have nothing to do with whether the deploy itself is
     # healthy, and masked the real post-deploy health check (audit.sh)
     # that runs after it. What actually matters structurally: the graph
@@ -130,7 +130,7 @@ def validate() -> dict:
     if structural_errors:
         raise RuntimeError({"structural_errors": structural_errors, "actual": checks})
     # Per-FAQ markdown/question-count hygiene is content-authoring debt,
-    # not a deploy-blocking condition â€” surfaced as a warning so it stays
+    # not a deploy-blocking condition — surfaced as a warning so it stays
     # visible without aborting the script before audit.sh runs.
     faq_markdown_warnings = [
         node.slug or node.id for node in faqs
@@ -166,4 +166,3 @@ def validate() -> dict:
 
 if __name__ == "__main__":
     print(json.dumps(validate(), sort_keys=True))
-

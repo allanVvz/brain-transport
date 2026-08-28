@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Backfill legacy knowledge sources into the RAG-ready knowledge_rag_* tables.
 
@@ -451,4 +451,3 @@ def backfill_knowledge_rag(
     counts.update(link_counts)
     counts["errors"] = counts["errors"][:50]
     return counts
-
