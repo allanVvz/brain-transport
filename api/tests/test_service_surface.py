@@ -9,7 +9,7 @@ import pytest
 
 os.environ.setdefault("SUPABASE_OFFLINE", "true")
 os.environ.setdefault("KNOWLEDGE_TAXONOMY_OFFLINE", "true")
-os.environ.setdefault("CURRENT_SCHEMA_VERSION", "130")
+os.environ.setdefault("CURRENT_SCHEMA_VERSION", "131")
 
 import main
 from repositories import transport as transport_repository

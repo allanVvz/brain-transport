@@ -6,7 +6,7 @@ from services import supabase_client
 
 router = APIRouter(tags=["health"])
 SERVICE_NAME = "brain-transport"
-DEFAULT_REQUIRED_SCHEMA_VERSION = 130
+DEFAULT_REQUIRED_SCHEMA_VERSION = 131
 
 
 def _build_metadata() -> dict:
