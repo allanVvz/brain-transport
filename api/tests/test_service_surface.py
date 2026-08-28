@@ -72,7 +72,7 @@ def test_transport_repository_contains_only_the_reviewed_production_surface():
         for node in tree.body
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
     }
-    assert len(functions) == 118
+    assert len(functions) == 72
     assert {
         "claim_conversation_commit",
         "enqueue_wa_validator_session",
@@ -110,6 +110,15 @@ def test_other_domain_modules_are_not_shipped_in_transport_source():
     forbidden_files = (
         "api/routes/messaging_campaigns.py",
         "api/services/campaigns_service.py",
+        "api/services/asset_graph_contract.py",
+        "api/services/conversation_graph.py",
+        "api/services/graph_agent_runtime_v3.py",
+        "api/services/graph_compiler_v3.py",
+        "api/services/graph_json_v2_store.py",
+        "api/services/graph_proof_checker_v3.py",
+        "api/services/knowledge_graph.py",
+        "api/services/knowledge_rag_intake.py",
+        "api/services/lead_qualification.py",
         "api/services/conversation_runtime.py",
         "api/services/graph_bundle.py",
         "api/services/sofia_orchestrator.py",
