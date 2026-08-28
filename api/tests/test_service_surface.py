@@ -23,6 +23,7 @@ FORBIDDEN_PREFIXES = (
     "/knowledge",
     "/auth",
     "/leads",
+    "/process",
 )
 
 
