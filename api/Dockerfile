@@ -1,8 +1,8 @@
 # Multi-stage production image for the AI Brain backend.
 # The same image runs the API (gunicorn) and the workers (workers.runner);
 # the compose file overrides the command for the workers service.
-# Build context is the repository root. Only api/ and the runtime SDR catalog
-# are copied, so image contents stay tied to the release SHA.
+# Build context is the repository root. .dockerignore excludes tests, scripts
+# and authoring catalogs so only the transport runtime enters the image.
 
 # ── Builder ───────────────────────────────────────────────────────────────
 FROM python:3.12-slim AS builder
@@ -46,16 +46,11 @@ RUN apt-get update \
 # Non-root runtime user.
 RUN useradd --create-home --uid 10001 appuser
 
-# Writable Obsidian vault dir for the kb-intake/Sofia save pipeline (VAULT_PATH).
-# A fresh named volume mounted here inherits this ownership on first init.
-RUN mkdir -p /data/vault && chown -R appuser:appuser /data
-
 COPY --from=builder /opt/venv /opt/venv
 RUN chown -R appuser:appuser /opt/venv/fastembed-cache
 
 WORKDIR /app
 COPY --chown=appuser:appuser api/ /app/
-COPY --chown=appuser:appuser docs/sdr/ /docs/sdr/
 
 USER appuser
 

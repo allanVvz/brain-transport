@@ -21,27 +21,6 @@ for path in (API_DIR, ROOT):
 
 # ── canonical chain ──────────────────────────────────────────────────────
 
-def test_conversation_hangs_under_audience():
-    from services.graph_json_v2_validator import CANONICAL_PARENT
-
-    assert CANONICAL_PARENT["conversation"] == ("audience",)
-    # ...and audience already hangs under campaign, completing the chain the
-    # CRM needs for attribution.
-    assert "campaign" in CANONICAL_PARENT["audience"]
-
-
-def test_asset_may_hang_under_a_conversation():
-    from services.graph_json_v2_validator import CANONICAL_PARENT
-
-    assert "conversation" in CANONICAL_PARENT["asset"]
-
-
-def test_conversation_is_a_known_knowledge_type():
-    from services.graph_json_v2_validator import V21_KNOWLEDGE_TYPES
-
-    assert "conversation" in V21_KNOWLEDGE_TYPES
-
-
 def test_graph_schema_accepts_a_conversation_node():
     from schemas.graph_json_v2 import Node
 

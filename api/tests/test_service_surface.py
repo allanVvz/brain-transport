@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+from pathlib import Path
 
 import pytest
 
@@ -26,6 +27,7 @@ FORBIDDEN_PREFIXES = (
     "/leads",
     "/process",
 )
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_service_identity_and_readiness_surface():
@@ -66,6 +68,33 @@ def test_public_surface_excludes_other_domains():
         if path == prefix or path.startswith(prefix + "/")
     )
     assert offenders == []
+
+
+def test_production_image_excludes_authoring_runtime_and_test_tools():
+    dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
+    dockerfile = (ROOT / "api/Dockerfile").read_text(encoding="utf-8")
+    for excluded in ("api/scripts/", "api/tests/", "tests/", "docs/"):
+        assert excluded in dockerignore
+    assert "docs/sdr" not in dockerfile
+    assert "/data/vault" not in dockerfile
+
+
+def test_other_domain_modules_are_not_shipped_in_transport_source():
+    forbidden_directories = (
+        "api/agents",
+        "api/core",
+    )
+    forbidden_files = (
+        "api/services/conversation_runtime.py",
+        "api/services/graph_bundle.py",
+        "api/services/sofia_orchestrator.py",
+        "api/services/wa_validator_service.py",
+    )
+    assert [
+        path for path in forbidden_directories
+        if any((ROOT / path).rglob("*.py"))
+    ] == []
+    assert [path for path in forbidden_files if (ROOT / path).exists()] == []
 
 
 def _jwt_for_role(role: str) -> str:
