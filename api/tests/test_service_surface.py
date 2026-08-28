@@ -11,6 +11,7 @@ os.environ.setdefault("KNOWLEDGE_TAXONOMY_OFFLINE", "true")
 os.environ.setdefault("CURRENT_SCHEMA_VERSION", "130")
 
 import main
+from repositories import transport as transport_repository
 from services import supabase_client
 from workers.runner import WORKERS
 
@@ -50,6 +51,10 @@ def test_transport_dispatch_uses_runtime_service_boundary():
 
     assert not hasattr(whatsapp_dispatch_worker, "conversation_runtime")
     assert hasattr(whatsapp_dispatch_worker, "runtime_client")
+
+
+def test_legacy_database_module_is_transport_repository_alias():
+    assert supabase_client is transport_repository
 
 
 def test_public_surface_excludes_other_domains():
