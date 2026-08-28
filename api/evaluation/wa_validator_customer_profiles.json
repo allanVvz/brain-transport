@@ -1,0 +1,123 @@
+{
+  "appointment": {
+    "answers": {
+      "nome_cliente": {"text": "Beatriz Souza", "value": "Beatriz Souza"},
+      "objective": {
+        "text": "Quero continuar com o veículo e cuidar bem dele",
+        "value": "continuar_cuidar_proteger"
+      },
+      "can_visit_in_person": {"text": "Sim, consigo levar até vocês", "value": true},
+      "modelo_veiculo": {"text": "Onix", "value": "Onix"},
+      "vehicle_year": {"text": "2020", "value": "2020"},
+      "condicao": {
+        "text": "Há marcas de uso e sujeira acumulada no veículo",
+        "value": "Há marcas de uso e sujeira acumulada no veículo"
+      },
+      "vehicle_color": {"text": "Prata", "value": "Prata"}
+    },
+    "regression_cases": [
+      {
+        "id": "jose_pending_objective_adds_vitrification",
+        "initial_active_services": ["polimento-localizado"],
+        "pending_field": "objective",
+        "messages": ["Vitrificação"],
+        "expected_operations": ["add"],
+        "expected_service_count": 2,
+        "forbidden_field_values": {"objective": "Vitrificação"}
+      },
+      {
+        "id": "two_services_same_message",
+        "messages": ["Quero polimento localizado e vitrificação"],
+        "expected_operations": ["add", "add"]
+      },
+      {
+        "id": "second_service_without_additive_marker",
+        "initial_active_services": ["polimento-localizado"],
+        "messages": ["Vitrificação"],
+        "expected_operations": ["add"]
+      },
+      {
+        "id": "repeat_remove_and_explicit_switch",
+        "messages": [
+          "Vitrificação",
+          "Vitrificação",
+          "Remova a vitrificação",
+          "Na verdade, prefiro PPF"
+        ],
+        "expected_operations_by_turn": [["add"], ["keep"], ["drop"], ["drop", "add"]]
+      },
+      {
+        "id": "service_and_valid_characteristic",
+        "pending_field": "condicao",
+        "messages": ["Vitrificação e a pintura está sem brilho"],
+        "expected_operations": ["add"],
+        "expected_field_values": {"condicao": "a pintura está sem brilho"}
+      },
+      {
+        "id": "ambiguous_polish_alias",
+        "messages": ["Polimento"],
+        "expected_operations": [],
+        "expected_intent": "service_disambiguation"
+      },
+      {
+        "id": "incompatible_then_unknown",
+        "pending_field": "objective",
+        "messages": ["Talvez", "Ainda não consigo responder"],
+        "expected_status_by_turn": [null, "unknown"],
+        "expected_unknown_reason": "ignored_twice"
+      },
+      {
+        "id": "declaration_scoped_free_fields",
+        "requires_distinct_owners": ["persona", "campaign", "branch"]
+      },
+      {
+        "id": "summary_lists_all_services",
+        "initial_active_services": ["polimento-localizado", "vitrificacao"],
+        "expected_summary_service_count": 2
+      }
+    ]
+  },
+  "sales": {
+    "openings": {
+      "sdr_sales_retail": "Oi! Quero algumas peças para uso próprio.",
+      "sdr_sales_reseller": "Oi! Quero conhecer opções para revenda.",
+      "sdr_sales_branch_switch": "Oi! Quero conhecer opções para revenda.",
+      "sdr_sales_knowledge_gap": "Oi! Quero algumas peças para uso próprio."
+    },
+    "answers": {
+      "retail_need": {
+        "text": "Estou procurando algo para usar no dia a dia",
+        "value": "roupa para uso no dia a dia"
+      },
+      "retail_style": {
+        "text": "Prefiro um estilo casual",
+        "value": "casual"
+      },
+      "resale_stage": {
+        "text": "Estou começando agora",
+        "value": "começando agora"
+      },
+      "volume_interest": {
+        "text": "Quero avaliar um volume inicial, ainda sem quantidade definida",
+        "value": "volume inicial a definir"
+      }
+    },
+    "unsupported_commercial_question": "Qual é o preço e o pedido mínimo?",
+    "branch_switch_text": "Na verdade, é para uso próprio.",
+    "regression_cases": [
+      {
+        "id": "retail_and_reseller_select_different_branches",
+        "expected_distinct_branch_anchors": true
+      },
+      {
+        "id": "unsupported_price_stock_deadline_deferred",
+        "forbidden_without_evidence": ["price", "stock", "deadline", "minimum_order"]
+      },
+      {
+        "id": "duplicate_inbound_exactly_once",
+        "max_decisions": 1,
+        "max_outbounds": 1
+      }
+    ]
+  }
+}

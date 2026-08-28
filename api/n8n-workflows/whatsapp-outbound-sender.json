@@ -1,0 +1,146 @@
+{
+  "id": "brain-wa-outbound-local-v2",
+  "name": "WhatsApp — Outbound Sender",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp/outbound",
+        "responseMode": "responseNode"
+      },
+      "id": "outbound-webhook",
+      "name": "Outbound request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json.body || $json; const required = ['buffer_id','channel_binding_id','phone_number_id','to','text','correlation_id']; for (const key of required) { if (!input[key]) throw new Error(`missing ${key}`); } return [{json: input}];"
+      },
+      "id": "normalize",
+      "name": "Normalize outbound",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{'https://graph.facebook.com/' + ($env.META_GRAPH_API_VERSION || 'v23.0') + '/' + $json.phone_number_id + '/messages'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{'Bearer ' + $env.META_WHATSAPP_ACCESS_TOKEN}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify({messaging_product: 'whatsapp', recipient_type: 'individual', to: $json.to, type: 'text', text: {preview_url: false, body: $json.text}})}}",
+        "options": {}
+      },
+      "id": "meta-send",
+      "name": "Send through Meta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 300],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.API_INTERNAL_BASE_URL + '/internal/whatsapp/outbound-result'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Token",
+              "value": "={{$env.AI_BRAIN_WEBHOOK_TOKEN}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify({buffer_id: $('Normalize outbound').item.json.buffer_id, channel_binding_id: $('Normalize outbound').item.json.channel_binding_id, wamid: $json.messages?.[0]?.id, success: true, execution_id: $execution.id, correlation_id: $('Normalize outbound').item.json.correlation_id})}}",
+        "options": {}
+      },
+      "id": "success-callback",
+      "name": "Commit Meta success",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [970, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.API_INTERNAL_BASE_URL + '/internal/whatsapp/outbound-result'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Token",
+              "value": "={{$env.AI_BRAIN_WEBHOOK_TOKEN}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify({buffer_id: $('Normalize outbound').item.json.buffer_id, channel_binding_id: $('Normalize outbound').item.json.channel_binding_id, success: false, error: $json.message || $json.error?.message || 'Meta transport failed', execution_id: $execution.id, correlation_id: $('Normalize outbound').item.json.correlation_id})}}",
+        "options": {}
+      },
+      "id": "failure-callback",
+      "name": "Commit Meta failure",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [970, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}"
+      },
+      "id": "respond",
+      "name": "Return transport result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [1220, 300]
+    }
+  ],
+  "connections": {
+    "Outbound request": {
+      "main": [[{"node": "Normalize outbound", "type": "main", "index": 0}]]
+    },
+    "Normalize outbound": {
+      "main": [[{"node": "Send through Meta", "type": "main", "index": 0}]]
+    },
+    "Send through Meta": {
+      "main": [
+        [{"node": "Commit Meta success", "type": "main", "index": 0}],
+        [{"node": "Commit Meta failure", "type": "main", "index": 0}]
+      ]
+    },
+    "Commit Meta success": {
+      "main": [[{"node": "Return transport result", "type": "main", "index": 0}]]
+    },
+    "Commit Meta failure": {
+      "main": [[{"node": "Return transport result", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all"
+  },
+  "versionId": "local-wa-outbound-v2",
+  "meta": {
+    "secrets": ["META_WHATSAPP_ACCESS_TOKEN"],
+    "graph_api_version_env": "META_GRAPH_API_VERSION"
+  }
+}

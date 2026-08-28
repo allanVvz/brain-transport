@@ -1,0 +1,7 @@
+-r requirements.txt
+pytest==9.1.1
+radon==6.0.1
+# Real-Postgres test fixtures (tests/conftest.py) — same driver used by
+# infra/migrate.Dockerfile's scripts/apply_migrations.py, so the migration
+# path exercised in tests matches the one exercised in the compose stack.
+psycopg2-binary==2.9.12

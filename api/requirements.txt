@@ -1,0 +1,32 @@
+fastapi==0.141.1
+uvicorn==0.52.0
+gunicorn==26.0.0
+supabase==2.31.0
+httpx==0.28.1
+pydantic==2.13.4
+jsonschema==4.23.0
+fastembed==0.8.0
+python-dotenv==1.2.2
+anthropic==0.120.2
+openai==2.50.0
+apscheduler==3.11.3
+gspread==6.2.1
+google-auth==2.56.2
+cryptography==50.0.0
+certifi==2026.7.22
+truststore==0.10.4
+pyyaml==6.0.3
+python-multipart==0.0.32
+# Asset pipeline — local classifier + PDF text extraction.
+pillow==12.3.0
+pillow-heif==1.5.0
+pypdf==6.15.0
+# Optional local OCR backends (install in prod via Dockerfile if desired):
+#   paddleocr, easyocr, pytesseract — selected at runtime via ASSET_OCR_BACKEND env.
+# CI runs with backend=mock so no OCR lib is required for tests.
+# Local speech-to-text for WhatsApp voice notes. Kept local (not an API) so a
+# customer's audio never leaves the VPS. Needs ffmpeg in the image to decode
+# WhatsApp's OGG/Opus; asset_pipeline.transcribe degrades to the placeholder
+# text when the package or ffmpeg is missing.
+faster-whisper==1.1.1
+brain-contracts @ git+https://github.com/allanVvz/brain-contracts.git@v1.0.0

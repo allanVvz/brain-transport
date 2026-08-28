@@ -1,0 +1,12 @@
+{
+  "id": "brain-wa-inbound-local-v1",
+  "name": "WhatsApp — Inbound Gateway (local)",
+  "active": false,
+  "nodes": [
+    {"parameters":{"httpMethod":"POST","path":"whatsapp/inbound","responseMode":"lastNode"},"id":"inbound-webhook","name":"Meta webhook","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[260,300]},
+    {"parameters":{"url":"={{$env.BRAIN_API_URL + '/webhooks/whatsapp/inbound'}}","sendBody":true,"contentType":"raw","rawContentType":"application/json","body":"={{JSON.stringify($json)}}"},"id":"brain-ingress","name":"Persist in Brain","type":"n8n-nodes-base.httpRequest","typeVersion":4,"position":[520,300]}
+  ],
+  "connections":{"Meta webhook":{"main":[[{"node":"Persist in Brain","type":"main","index":0}]]}},
+  "settings":{"executionOrder":"v1"},
+  "versionId":"local-wa-inbound-v1"
+}

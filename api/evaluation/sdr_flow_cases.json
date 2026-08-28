@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "greeting_after_handoff_oi",
+      "message": "Oi",
+      "initial_journey_state": "handed_off",
+      "pending_reconfirmation": true,
+      "expected_intent": "greeting",
+      "expected_operational_mode": "post_qualification_support",
+      "must_not_extract": [
+        "servico"
+      ],
+      "must_not_handoff": true,
+      "must_not_ask_service": true
+    },
+    {
+      "id": "greeting_after_handoff_oii",
+      "message": "Oii",
+      "initial_journey_state": "handed_off",
+      "pending_reconfirmation": true,
+      "expected_intent": "greeting",
+      "expected_operational_mode": "post_qualification_support",
+      "must_not_extract": [
+        "servico"
+      ],
+      "must_not_handoff": true,
+      "must_not_ask_service": true
+    },
+    {
+      "id": "greeting_with_service",
+      "message": "Oi, quero vitrificação",
+      "expected_intent": "greeting_and_service",
+      "expected_service_phrase": "vitrificação",
+      "must_not_handoff": true
+    },
+    {
+      "id": "social_reply_is_not_service",
+      "message": "Obrigado",
+      "must_not_extract": [
+        "servico"
+      ]
+    },
+    {
+      "id": "number_is_not_service",
+      "message": "2",
+      "must_not_extract": [
+        "servico"
+      ]
+    },
+    {
+      "id": "explicit_confirmation",
+      "message": "Sim",
+      "initial_journey_state": "awaiting_confirmation",
+      "expected_intent": "qualification_confirmed",
+      "expected_route": "HUMAN",
+      "expected_handoff": true
+    },
+    {
+      "id": "confirmation_rejected",
+      "message": "Não",
+      "initial_journey_state": "awaiting_confirmation",
+      "expected_intent": "qualification_correction_requested",
+      "expected_route": "SDR",
+      "must_not_handoff": true
+    },
+    {
+      "id": "faq_during_confirmation",
+      "message": "Antes de confirmar, como funciona a garantia?",
+      "initial_journey_state": "awaiting_confirmation",
+      "expected_intent": "faq_then_resume_confirmation",
+      "must_not_handoff": true
+    },
+    {
+      "id": "explicit_service_switch",
+      "message": "Na verdade, quero vitrificação",
+      "expected_intent": "service_switch",
+      "preserve_common_facts": true
+    },
+    {
+      "id": "duplicate_terminal",
+      "message": "Obrigado",
+      "initial_journey_state": "handed_off",
+      "expected_repetition_action": "suppressed_duplicate_terminal",
+      "max_outbounds": 0
+    },
+    {
+      "id": "name_lowercase_direct_answer",
+      "message": "allan rodrigues",
+      "model_value": "Allan Rodrigues",
+      "model_confidence": 0.95,
+      "expected_fact_status": "known",
+      "expected_evidence_span": "allan rodrigues",
+      "note": "Caixa nao decide. O cliente escreve em minusculas, o modelo normaliza, e os dois estao falando do mesmo nome."
+    },
+    {
+      "id": "name_candidate_restated_confirms",
+      "message": "allan rodrigues",
+      "pending_candidate": "Allan Rodrigues",
+      "expected_fact_status": "known",
+      "note": "Repetir o proprio valor e confirmar. Exigir 'sim' literal deixava o candidato pendente para sempre."
+    },
+    {
+      "id": "name_with_digits_is_not_a_name",
+      "message": "carro 2019",
+      "model_value": "carro 2019",
+      "model_confidence": 0.99,
+      "expected_fact_status": "invalid",
+      "note": "Confianca alta nao transforma qualquer texto em nome."
+    },
+    {
+      "id": "acknowledgement_only_is_not_a_turn",
+      "message": "hmmm ta",
+      "model_reply": "Entendi.",
+      "expected_reply_contains_question": true,
+      "note": "Um turno de coleta que so reconhece e um silencio disfarcado: a pergunta publicada volta."
+    }
+  ]
+}
