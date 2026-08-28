@@ -32,6 +32,8 @@ def test_service_identity_and_readiness_surface():
     paths = set(main.app.openapi()["paths"])
     assert "/health" in paths
     assert "/health/ready" in paths
+    assert "/internal/v1/transport/whatsapp/outbound-result" in paths
+    assert "/internal/whatsapp/outbound-result" not in paths
 
 
 def test_worker_group_is_domain_scoped():
