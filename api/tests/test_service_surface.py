@@ -45,6 +45,13 @@ def test_worker_group_is_domain_scoped():
     }
 
 
+def test_transport_dispatch_uses_runtime_service_boundary():
+    from workers import whatsapp_dispatch_worker
+
+    assert not hasattr(whatsapp_dispatch_worker, "conversation_runtime")
+    assert hasattr(whatsapp_dispatch_worker, "runtime_client")
+
+
 def test_public_surface_excludes_other_domains():
     paths = set(main.app.openapi()["paths"])
     offenders = sorted(

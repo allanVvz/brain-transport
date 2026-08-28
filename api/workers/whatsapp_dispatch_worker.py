@@ -16,9 +16,9 @@ from datetime import datetime, timezone
 from typing import Any
 
 from services import (
-    conversation_runtime,
     event_emitter,
     n8n_client,
+    runtime_client,
     supabase_client,
     sre_logger,
     whatsapp_outbox,
@@ -200,19 +200,21 @@ class WhatsAppDispatchWorker(BaseWorker):
                 error="unsupported binding decision owner",
             )
             return
-        if not self._begin_attempt(row, "decision"):
-            return
         if decision_owner == "deterministic":
-            result = conversation_runtime.execute_pipeline(
-                persona_slug=persona["slug"],
-                lead_ref=int(row["lead_ref"]),
-                message=str(payload.get("text") or ""),
-                message_id=row.get("external_message_id"),
-                correlation_id=str(row.get("correlation_id") or row["id"]),
-                phone_number_id=row.get("whatsapp_phone_number_id"),
-                channel_binding_id=row.get("channel_binding_id"),
-                inbound_buffer_id=row["id"],
-            )
+            # Runtime owns decision/commit idempotency by inbound_buffer_id.
+            # Do not burn transport's irreversible attempt marker before the
+            # network call: an unavailable runtime must leave this durable row
+            # retryable, while a repeated call is reconciled by runtime.
+            result = runtime_client.execute_inbound({
+                "persona_slug": persona["slug"],
+                "lead_ref": int(row["lead_ref"]),
+                "message": str(payload.get("text") or ""),
+                "message_id": row.get("external_message_id"),
+                "correlation_id": str(row.get("correlation_id") or row["id"]),
+                "phone_number_id": row.get("whatsapp_phone_number_id"),
+                "channel_binding_id": row.get("channel_binding_id"),
+                "inbound_buffer_id": row["id"],
+            })
             if result.get("burst_superseded"):
                 event_emitter.emit(
                     "whatsapp.inbound_burst_superseded",
@@ -242,6 +244,8 @@ class WhatsAppDispatchWorker(BaseWorker):
             )
             return
         if decision_owner == "n8n_agents":
+            if not self._begin_attempt(row, "decision"):
+                return
             webhook_url = str(
                 binding_metadata.get("conversation_webhook_url") or ""
             ).strip()
