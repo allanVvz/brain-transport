@@ -37,6 +37,9 @@ def test_service_identity_and_readiness_surface():
     assert "/health" in paths
     assert "/health/ready" in paths
     assert "/internal/v1/transport/messages/campaign-outbound" in paths
+    assert "/internal/v1/transport/messages/prepare-outbound" in paths
+    assert "/internal/v1/transport/messages/outbound" in paths
+    assert "/internal/v1/transport/messages/validator-media" in paths
     assert "/internal/v1/transport/whatsapp/evolution/provision" in paths
     assert "/internal/v1/transport/whatsapp/evolution/action" in paths
     assert not any(path.startswith("/messaging") for path in paths)
@@ -155,6 +158,64 @@ def test_internal_campaign_command_authenticates_and_uses_transport_outbox(monke
     assert calls == ["internal-token"]
     assert result["buffer_id"] == "buffer-1"
     assert result["campaign_scope"]["campaign_id"] == "c"
+
+
+def test_internal_runtime_outbound_can_be_prepared_or_enqueued(monkeypatch):
+    from routes import messages
+
+    authorized = []
+    monkeypatch.setattr(messages.internal_auth, "authorize_webhook_token", authorized.append)
+    monkeypatch.setattr(
+        messages.whatsapp_outbox,
+        "prepare_outbound_envelope",
+        lambda **payload: {"buffer": {"status": payload["initial_status"]}, "message": {}},
+    )
+    monkeypatch.setattr(
+        messages.whatsapp_outbox,
+        "enqueue_outbound",
+        lambda **payload: {"buffer_id": "buffer-2", **payload},
+    )
+    body = messages.InternalOutboundBody(
+        lead={"id": 42, "persona_id": "00000000-0000-0000-0000-000000000001"},
+        text="resposta",
+        message_id="ai:inbound-1",
+        correlation_id="ai:inbound-1",
+        idempotency_key="ai:inbound-1",
+        initial_status="awaiting_proof",
+    )
+
+    prepared = messages.prepare_outbound_internal(body, "internal-token")
+    enqueued = messages.enqueue_outbound_internal(body, "internal-token")
+
+    assert authorized == ["internal-token", "internal-token"]
+    assert prepared["buffer"]["status"] == "awaiting_proof"
+    assert enqueued["buffer_id"] == "buffer-2"
+
+
+def test_internal_validator_media_stays_inert_and_transport_owned(monkeypatch):
+    from routes import messages
+
+    calls = []
+    monkeypatch.setattr(messages.internal_auth, "authorize_webhook_token", calls.append)
+    monkeypatch.setattr(
+        messages.validator_media,
+        "store",
+        lambda **payload: {"outbound_enqueued": False, "size": len(payload["content"])},
+    )
+    body = messages.InternalValidatorMediaBody(
+        session_id="session-1",
+        persona_id="persona-1",
+        lead_ref=42,
+        filename="fixture.png",
+        mime="image/png",
+        content_base64=base64.b64encode(b"fixture").decode(),
+        idempotency_key="fixture:1234",
+    )
+
+    result = messages.store_validator_media_internal(body, "internal-token")
+
+    assert calls == ["internal-token"]
+    assert result == {"outbound_enqueued": False, "size": 7}
 
 
 def _jwt_for_role(role: str) -> str:

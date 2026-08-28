@@ -14,6 +14,7 @@ from services import (
     operator_messaging,
     runtime_client,
     supabase_client,
+    validator_media,
     whatsapp_outbox,
 )
 
@@ -41,15 +42,34 @@ class InternalPortalMessageBody(BaseModel):
     media_filename: str | None = None
 
 
-class InternalCampaignOutboundBody(BaseModel):
+class InternalOutboundBody(BaseModel):
     lead: dict[str, Any]
     text: str
-    sender_type: str = "campaign"
+    sender_type: str = "agent"
     message_id: str
     correlation_id: str
     idempotency_key: str
+    initial_status: str = "pending_send"
+    metadata: dict[str, Any] | None = None
+    media: dict[str, Any] | None = None
     template: dict[str, Any] | None = None
+    campaign_scope: dict[str, Any] | None = None
+
+
+class InternalCampaignOutboundBody(InternalOutboundBody):
+    sender_type: str = "campaign"
     campaign_scope: dict[str, Any]
+
+
+class InternalValidatorMediaBody(BaseModel):
+    session_id: str
+    persona_id: str
+    lead_ref: int
+    channel_binding_id: str | None = None
+    filename: str
+    mime: str
+    content_base64: str
+    idempotency_key: str
 
 
 def _decode_message_cursor(value: str | None) -> tuple[str | None, int | None]:
@@ -207,6 +227,44 @@ def enqueue_campaign_outbound_internal(
     """
     internal_auth.authorize_webhook_token(x_webhook_token)
     return whatsapp_outbox.enqueue_outbound(**body.model_dump())
+
+
+@internal_router.post("/prepare-outbound")
+def prepare_outbound_internal(
+    body: InternalOutboundBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    """Build a provider-safe envelope for the runtime's atomic proof commit."""
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    return whatsapp_outbox.prepare_outbound_envelope(**body.model_dump())
+
+
+@internal_router.post("/outbound")
+def enqueue_outbound_internal(
+    body: InternalOutboundBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    """Persist one idempotent runtime outbound under transport ownership."""
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    return whatsapp_outbox.enqueue_outbound(**body.model_dump())
+
+
+@internal_router.post("/validator-media")
+def store_validator_media_internal(
+    body: InternalValidatorMediaBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    try:
+        content = base64.b64decode(body.content_base64, validate=True)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(422, "Midia base64 invalida") from exc
+    try:
+        return validator_media.store(
+            **body.model_dump(exclude={"content_base64"}), content=content,
+        )
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 def _resolve_scope_lead_refs(
