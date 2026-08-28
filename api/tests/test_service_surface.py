@@ -218,6 +218,46 @@ def test_internal_validator_media_stays_inert_and_transport_owned(monkeypatch):
     assert result == {"outbound_enqueued": False, "size": 7}
 
 
+def test_repeated_copy_is_observed_but_distinct_identity_is_enqueued(monkeypatch):
+    from services import whatsapp_outbox
+
+    binding = {
+        "id": "binding-1", "persona_id": "persona-1", "provider": "meta_cloud",
+        "active": True, "connection_status": "connected",
+        "whatsapp_phone_number_id": "phone-id", "provider_secret_ciphertext": "cipher",
+        "metadata": {"decision_owner": "deterministic", "transport_mode": "provider_direct"},
+    }
+    lead = {
+        "id": 42, "persona_id": "persona-1", "channel_binding_id": "binding-1",
+        "external_contact_id": "5551982608510", "metadata": {},
+    }
+    events = []
+    envelopes = []
+    monkeypatch.setattr(whatsapp_outbox.supabase_client, "get_workflow_binding_by_id", lambda _id: binding)
+    monkeypatch.setattr(whatsapp_outbox.supabase_client, "get_whatsapp_buffer_by_idempotency", lambda _key: None)
+    monkeypatch.setattr(
+        whatsapp_outbox.supabase_client, "find_recent_duplicate_whatsapp_outbound",
+        lambda **_kwargs: {"id": "old", "status": "sent"},
+    )
+    monkeypatch.setattr(whatsapp_outbox.event_emitter, "emit", lambda *args, **kwargs: events.append((args, kwargs)))
+    monkeypatch.setattr(
+        whatsapp_outbox.supabase_client, "enqueue_whatsapp_envelope",
+        lambda **payload: envelopes.append(payload) or {
+            "buffer_id": "new", "message_id": "message", "status": "pending_send",
+            "deduplicated": False,
+        },
+    )
+
+    result = whatsapp_outbox.enqueue_outbound(
+        lead=lead, text="mesma resposta", sender_type="agent",
+        message_id="ai:new", correlation_id="ai:new", idempotency_key="ai:new",
+    )
+
+    assert result["buffer_id"] == "new"
+    assert len(envelopes) == 1
+    assert events[0][0][0] == "whatsapp.duplicate_content_suppressed"
+
+
 def _jwt_for_role(role: str) -> str:
     payload = base64.urlsafe_b64encode(
         json.dumps({"role": role}).encode()
