@@ -28,7 +28,7 @@ FORBIDDEN_PREFIXES = (
 
 def test_service_identity_and_readiness_surface():
     assert main.app.title == "Brain Transport"
-    paths = {route.path for route in main.app.routes}
+    paths = set(main.app.openapi()["paths"])
     assert "/health" in paths
     assert "/health/ready" in paths
 
@@ -42,7 +42,7 @@ def test_worker_group_is_domain_scoped():
 
 
 def test_public_surface_excludes_other_domains():
-    paths = {route.path for route in main.app.routes}
+    paths = set(main.app.openapi()["paths"])
     offenders = sorted(
         path
         for path in paths
