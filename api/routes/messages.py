@@ -10,9 +10,9 @@ from pydantic import BaseModel
 from services import (
     auth_service,
     event_emitter,
-    lead_qualification,
     internal_auth,
     operator_messaging,
+    runtime_client,
     supabase_client,
     whatsapp_outbox,
 )
@@ -247,10 +247,15 @@ def _decorate_conversations(
         for row in rows
         if row.get("lead_ref") is not None
     ])
+    decorated_leads = runtime_client.decorate_leads(list(leads_by_ref.values()))
+    qualification_by_ref = {
+        int(lead["id"]): lead
+        for lead in decorated_leads
+        if lead.get("id") is not None
+    }
     for row in rows:
         lead_ref = row.get("lead_ref")
-        lead = leads_by_ref.get(int(lead_ref), {}) if lead_ref is not None else {}
-        extra = lead_qualification.decorate_lead(lead)
+        extra = qualification_by_ref.get(int(lead_ref), {}) if lead_ref is not None else {}
         is_validation = bool(extra.get("validation", {}).get("is_validation"))
         if validation_scope == "only" and not is_validation:
             continue
@@ -355,7 +360,8 @@ def get_messages_by_ref(
     if (user.get("account_type") or "internal") == "client":
         validation_scope = "exclude"
     if lead:
-        is_validation = lead_qualification.is_validation_lead(lead)
+        decorated = runtime_client.decorate_leads([lead])
+        is_validation = bool((decorated[0] if decorated else {}).get("validation", {}).get("is_validation"))
         if (
             (validation_scope == "only" and not is_validation)
             or (validation_scope == "exclude" and is_validation)

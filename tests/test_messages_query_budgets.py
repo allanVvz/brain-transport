@@ -73,6 +73,15 @@ def test_conversation_decoration_bulk_loads_leads(monkeypatch):
 
     monkeypatch.setattr(messages.supabase_client, "get_leads_by_refs", bulk)
     monkeypatch.setattr(
+        messages.runtime_client,
+        "decorate_leads",
+        lambda leads: [
+            {**lead, "qualification": {}, "qualification_score": 0,
+             "qualification_signals": [], "validation": {}}
+            for lead in leads
+        ],
+    )
+    monkeypatch.setattr(
         messages.supabase_client,
         "get_lead_by_ref",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(
