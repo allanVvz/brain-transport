@@ -78,3 +78,20 @@ def test_database_jwt_is_restricted_to_manifest_role(monkeypatch):
     monkeypatch.setenv("BRAIN_DB_JWT", _jwt_for_role("service_role"))
     with pytest.raises(RuntimeError, match="brain_transport"):
         supabase_client._validated_db_jwt()
+
+
+def test_readiness_uses_image_schema_requirement_and_build_metadata(monkeypatch):
+    from routes import health
+
+    monkeypatch.setenv("CURRENT_SCHEMA_VERSION", "131")
+    monkeypatch.setenv("REQUIRED_SCHEMA_VERSION", "131")
+    monkeypatch.setenv("SOURCE_SHA", "a" * 40)
+    monkeypatch.setenv("BUILD_DIGEST", "sha256:image")
+    monkeypatch.setattr(health.supabase_client, "ping_supabase", lambda: (True, "ok"))
+
+    result = health.health_ready()
+
+    assert result["status"] == "ready"
+    assert result["required_schema_version"] == 131
+    assert result["source_sha"] == "a" * 40
+    assert result["build_digest"] == "sha256:image"

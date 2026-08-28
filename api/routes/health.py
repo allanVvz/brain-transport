@@ -6,7 +6,16 @@ from services import supabase_client
 
 router = APIRouter(tags=["health"])
 SERVICE_NAME = "brain-transport"
-REQUIRED_SCHEMA_VERSION = 130
+DEFAULT_REQUIRED_SCHEMA_VERSION = 130
+
+
+def _build_metadata() -> dict:
+    return {
+        "source_sha": (os.environ.get("SOURCE_SHA") or "0" * 40).strip(),
+        "build_digest": (os.environ.get("BUILD_DIGEST") or "unknown").strip(),
+        "contracts_version": (os.environ.get("BRAIN_CONTRACTS_VERSION") or "1.0.0").strip(),
+        "slot": (os.environ.get("BRAIN_SLOT") or "unknown").strip(),
+    }
 
 
 @router.get("/")
@@ -24,6 +33,7 @@ def health_live():
     return {
         "status": "ok",
         "service": SERVICE_NAME,
+        **_build_metadata(),
         "workers_embedded": (os.environ.get("RUN_EMBEDDED_WORKERS") or "").strip().lower() in {"1", "true", "yes", "on"},
     }
 
@@ -32,11 +42,16 @@ def health_live():
 def health_ready():
     ok, detail = supabase_client.ping_supabase()
     schema_version = int(os.environ.get("CURRENT_SCHEMA_VERSION") or "0")
-    schema_ok = schema_version >= REQUIRED_SCHEMA_VERSION
+    required_schema_version = int(
+        os.environ.get("REQUIRED_SCHEMA_VERSION") or DEFAULT_REQUIRED_SCHEMA_VERSION
+    )
+    schema_ok = schema_version >= required_schema_version
     payload = {
         "status": "ready" if ok and schema_ok else "not_ready",
+        "service": SERVICE_NAME,
+        **_build_metadata(),
         "schema_version": schema_version,
-        "required_schema_version": REQUIRED_SCHEMA_VERSION,
+        "required_schema_version": required_schema_version,
         "checks": {
             "supabase": {
                 "ok": ok,
