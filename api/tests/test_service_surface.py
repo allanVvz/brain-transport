@@ -37,6 +37,8 @@ def test_service_identity_and_readiness_surface():
     assert "/health" in paths
     assert "/health/ready" in paths
     assert "/internal/v1/transport/messages/campaign-outbound" in paths
+    assert "/internal/v1/transport/whatsapp/evolution/provision" in paths
+    assert "/internal/v1/transport/whatsapp/evolution/action" in paths
     assert not any(path.startswith("/messaging") for path in paths)
     assert "/internal/v1/transport/whatsapp/outbound-result" in paths
     assert "/internal/v1/transport/messages/send" in paths
