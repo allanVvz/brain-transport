@@ -142,29 +142,6 @@ def _one(query) -> Optional[dict]:
             pass
         return None
 
-
-def _insert_one(query) -> dict:
-    """Execute an insert and return the first row.
-
-    Re-raises on any database error so callers see the real cause (CHECK violations,
-    NOT NULL, FK, etc.) instead of receiving a silent {}. Returns {} only when the
-    insert succeeded but PostgREST returned no row data â€” an anomalous shape that
-    callers can recover from via a follow-up lookup.
-    """
-    try:
-        result = _execute_with_retry(query)
-    except Exception as exc:
-        try:
-            from services import sre_logger
-            sre_logger.error("supabase_client", f"insert failed: {exc}", exc)
-        except Exception:
-            pass
-        raise
-    if result is None or not result.data:
-        return {}
-    return result.data[0]
-
-
 def _slugify(value: str) -> str:
     text = unicodedata.normalize("NFKD", str(value or "")).encode("ascii", "ignore").decode("ascii")
     text = re.sub(r"[^a-zA-Z0-9]+", "-", text.strip().lower())
@@ -185,16 +162,6 @@ def get_lead(lead_id: str) -> Optional[dict]:
     except Exception:
         pass
     return _one(client.table("leads").select("*").eq("lead_id", lead_id).maybe_single())
-
-
-def _resolve_persona_id(persona_slug_or_id: Optional[str]) -> Optional[str]:
-    if not persona_slug_or_id:
-        return None
-    if len(persona_slug_or_id) == 36 and persona_slug_or_id.count("-") == 4:
-        return persona_slug_or_id
-    persona = get_persona(persona_slug_or_id)
-    return persona.get("id") if persona else None
-
 
 _LEADS_MISSING_COLUMNS: set[str] = set()
 
@@ -1731,44 +1698,6 @@ def _mark_persona_faqs_pending_regeneration(persona_id: Optional[str], *, change
     except Exception:
         pass
 
-def insert_knowledge_intake_message(data: dict) -> dict:
-    return _insert_one(get_client().table("knowledge_intake_messages").insert(data))
-
-
-def update_knowledge_intake_message(intake_id: str, data: dict) -> None:
-    _execute_with_retry(
-        get_client().table("knowledge_intake_messages").update(data).eq("id", intake_id)
-    )
-
-
-def upsert_knowledge_rag_entry(data: dict) -> dict:
-    from datetime import datetime, timezone
-
-    payload = dict(data)
-    payload["updated_at"] = datetime.now(timezone.utc).isoformat()
-    result = _execute_with_retry(
-        get_client()
-        .table("knowledge_rag_entries")
-        .upsert(payload, on_conflict="persona_id,canonical_key")
-    )
-    return (result.data or [{}])[0]
-
-
-def replace_knowledge_rag_chunks(rag_entry_id: str, persona_id: str, chunks: list[dict]) -> list[dict]:
-    client = get_client()
-    _execute_with_retry(client.table("knowledge_rag_chunks").delete().eq("rag_entry_id", rag_entry_id))
-    if not chunks:
-        return []
-    payload = []
-    for idx, chunk in enumerate(chunks):
-        row = dict(chunk)
-        row.setdefault("chunk_index", idx)
-        row["rag_entry_id"] = rag_entry_id
-        row["persona_id"] = persona_id
-        payload.append(row)
-    result = _execute_with_retry(client.table("knowledge_rag_chunks").insert(payload))
-    return result.data or []
-
 _APPROVED_SNAPSHOTS_MISSING = False
 
 def search_active_rag_chunks(
@@ -2685,112 +2614,6 @@ def insert_event(
         except Exception:
             pass
         return None
-
-def list_system_events(
-    entity_type: Optional[str] = None,
-    event_types: Optional[list[str]] = None,
-    persona_id: Optional[str] = None,
-    entity_id: Optional[str] = None,
-    payload_equals: Optional[dict[str, str]] = None,
-    since: Optional[str] = None,
-    search: Optional[str] = None,
-    level: Optional[str] = None,
-    limit: int = 100,
-) -> list:
-    """Audit-trail query over system_events.
-
-    Filters compose with AND. `event_types` is an OR list (uses .in_()).
-    `search` does ILIKE over payload::text — slow without an index, OK for
-    audit volumes (capped by limit). `since` expects ISO8601.
-    """
-    q = (
-        get_client().table("system_events")
-        .select("*")
-        .order("created_at", desc=True)
-        .limit(max(1, min(int(limit or 100), 500)))
-    )
-    if entity_type:
-        q = q.eq("entity_type", entity_type)
-    if event_types:
-        q = q.in_("event_type", list(event_types))
-    if persona_id:
-        q = q.eq("persona_id", persona_id)
-    if entity_id:
-        q = q.eq("entity_id", entity_id)
-    for key, value in (payload_equals or {}).items():
-        if key not in {"persona_slug", "brand_slug", "version", "operation_id"}:
-            raise ValueError(f"Unsupported system_events payload filter: {key}")
-        q = q.eq(f"payload->>{key}", str(value))
-    if since:
-        q = q.gte("created_at", since)
-    if search:
-        q = q.ilike("payload", f"%{search}%")
-    if level:
-        q = q.eq("level", level)
-    return _q(q)
-
-
-def _rpc_json(name: str, params: dict) -> dict:
-    """Execute an internal RPC and normalize PostgREST's object/list shapes."""
-    result = _execute_with_retry(get_client().rpc(name, params))
-    payload = getattr(result, "data", None)
-    if isinstance(payload, list):
-        payload = payload[0] if payload else None
-    if not isinstance(payload, dict):
-        raise RuntimeError(f"{name} returned an invalid result")
-    return payload
-
-
-def commit_graph_version_v2(
-    *,
-    persona_slug: str,
-    brand_slug: Optional[str],
-    expected_version: int,
-    idempotency_key: str,
-    reason: str,
-    graph_json: dict,
-    content_checksum: str,
-    source: str,
-    authored_by: Optional[str],
-) -> dict:
-    return _rpc_json(
-        "commit_graph_version_v2",
-        {
-            "p_persona_slug": persona_slug,
-            "p_brand_slug": brand_slug,
-            "p_expected_version": expected_version,
-            "p_idempotency_key": idempotency_key,
-            "p_reason": reason,
-            "p_graph_json": graph_json,
-            "p_content_checksum": content_checksum,
-            "p_source": source,
-            "p_authored_by": authored_by,
-        },
-    )
-
-
-def activate_graph_projection_v2(
-    *,
-    persona_slug: str,
-    brand_slug: Optional[str],
-    graph_version: int,
-    graph_checksum: str,
-    operation_id: str,
-    projections: dict,
-    source: str,
-) -> dict:
-    return _rpc_json(
-        "activate_graph_projection_v2",
-        {
-            "p_persona_slug": persona_slug,
-            "p_brand_slug": brand_slug,
-            "p_graph_version": graph_version,
-            "p_graph_checksum": graph_checksum,
-            "p_operation_id": operation_id,
-            "p_projections": projections,
-            "p_source": source,
-        },
-    )
 
 def update_pipeline_status(service: str, data: dict) -> None:
     get_client().table("pipeline_status").update(data).eq("service", service).execute()

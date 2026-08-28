@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
@@ -38,6 +39,17 @@ class InternalPortalMessageBody(BaseModel):
     media_base64: str | None = None
     media_mime: str | None = None
     media_filename: str | None = None
+
+
+class InternalCampaignOutboundBody(BaseModel):
+    lead: dict[str, Any]
+    text: str
+    sender_type: str = "campaign"
+    message_id: str
+    correlation_id: str
+    idempotency_key: str
+    template: dict[str, Any] | None = None
+    campaign_scope: dict[str, Any]
 
 
 def _decode_message_cursor(value: str | None) -> tuple[str | None, int | None]:
@@ -181,6 +193,20 @@ def send_portal_message_internal(
         media=media,
         metadata={"actor_user_id": x_brain_actor_id},
     )
+
+
+@internal_router.post("/campaign-outbound")
+def enqueue_campaign_outbound_internal(
+    body: InternalCampaignOutboundBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    """Accept one idempotent campaign command from the control plane.
+
+    Provider selection, the delivery queue and delivery status remain owned by
+    transport; campaign policy and recipient selection never move here.
+    """
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    return whatsapp_outbox.enqueue_outbound(**body.model_dump())
 
 
 def _resolve_scope_lead_refs(

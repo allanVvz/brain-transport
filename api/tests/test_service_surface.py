@@ -36,6 +36,8 @@ def test_service_identity_and_readiness_surface():
     paths = set(main.app.openapi()["paths"])
     assert "/health" in paths
     assert "/health/ready" in paths
+    assert "/internal/v1/transport/messages/campaign-outbound" in paths
+    assert not any(path.startswith("/messaging") for path in paths)
     assert "/internal/v1/transport/whatsapp/outbound-result" in paths
     assert "/internal/v1/transport/messages/send" in paths
     assert "/internal/whatsapp/outbound-result" not in paths
@@ -68,7 +70,7 @@ def test_transport_repository_contains_only_the_reviewed_production_surface():
         for node in tree.body
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
     }
-    assert len(functions) == 128
+    assert len(functions) == 118
     assert {
         "claim_conversation_commit",
         "enqueue_wa_validator_session",
@@ -104,6 +106,8 @@ def test_other_domain_modules_are_not_shipped_in_transport_source():
         "api/core",
     )
     forbidden_files = (
+        "api/routes/messaging_campaigns.py",
+        "api/services/campaigns_service.py",
         "api/services/conversation_runtime.py",
         "api/services/graph_bundle.py",
         "api/services/sofia_orchestrator.py",
@@ -114,6 +118,32 @@ def test_other_domain_modules_are_not_shipped_in_transport_source():
         if any((ROOT / path).rglob("*.py"))
     ] == []
     assert [path for path in forbidden_files if (ROOT / path).exists()] == []
+
+
+def test_internal_campaign_command_authenticates_and_uses_transport_outbox(monkeypatch):
+    from routes import messages
+
+    calls = []
+    monkeypatch.setattr(messages.internal_auth, "authorize_webhook_token", calls.append)
+    monkeypatch.setattr(
+        messages.whatsapp_outbox,
+        "enqueue_outbound",
+        lambda **payload: {"buffer_id": "buffer-1", **payload},
+    )
+    body = messages.InternalCampaignOutboundBody(
+        lead={"id": 42, "persona_id": "00000000-0000-0000-0000-000000000001"},
+        text="mensagem",
+        message_id="campaign:c:r:1",
+        correlation_id="campaign:c:1:r:1",
+        idempotency_key="campaign-send:c:1:r:1",
+        campaign_scope={"campaign_id": "c", "campaign_recipient_id": "r"},
+    )
+
+    result = messages.enqueue_campaign_outbound_internal(body, "internal-token")
+
+    assert calls == ["internal-token"]
+    assert result["buffer_id"] == "buffer-1"
+    assert result["campaign_scope"]["campaign_id"] == "c"
 
 
 def _jwt_for_role(role: str) -> str:
