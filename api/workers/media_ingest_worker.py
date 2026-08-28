@@ -16,10 +16,12 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import socket
+import unicodedata
 from datetime import datetime, timedelta, timezone
 
-from services import knowledge_graph, media_ingest, sre_logger, supabase_client
+from services import control_plane_client, media_ingest, sre_logger, supabase_client
 from services.asset_pipeline import AssetPipelineContext, run_pipeline
 from services.whatsapp_providers import get_provider
 from workers.base_worker import BaseWorker
@@ -175,9 +177,9 @@ class MediaIngestWorker(BaseWorker):
         """Upload to the private bucket under a persona/lead-scoped key."""
         persona_id = asset.get("persona_id")
         lead_id = asset.get("lead_id")
-        name = knowledge_graph._slugify(
-            (asset.get("original_filename") or descriptor.get("kind") or "midia").rsplit(".", 1)[0]
-        )[:60] or "midia"
+        raw_name = (asset.get("original_filename") or descriptor.get("kind") or "midia").rsplit(".", 1)[0]
+        folded = unicodedata.normalize("NFKD", str(raw_name)).encode("ascii", "ignore").decode()
+        name = re.sub(r"[^a-z0-9]+", "-", folded.lower()).strip("-")[:60] or "midia"
         suffix = _extension(descriptor, asset.get("original_filename"))
         path = f"{persona_id}/{lead_id}/{asset.get('id')}-{name}{suffix}"
         supabase_client.upload_to_storage(
@@ -195,9 +197,7 @@ class MediaIngestWorker(BaseWorker):
         already unblocked, so a graph publish failure must not fail ingest.
         """
         try:
-            from services import conversation_graph
-
-            conversation_graph.attach_inbound_asset(asset_id)
+            control_plane_client.attach_inbound_asset(asset_id)
         except Exception as exc:
             logger.warning("graph attach skipped asset=%s: %s", asset_id, exc)
 

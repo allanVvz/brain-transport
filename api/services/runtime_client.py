@@ -6,6 +6,7 @@ import os
 from typing import Any
 
 import httpx
+from fastapi import HTTPException
 
 from utils.tls import get_ca_bundle_path
 
@@ -45,3 +46,30 @@ def execute_inbound(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(result, dict):
         raise RuntimeError("conversation runtime returned an invalid response")
     return result
+
+
+def decorate_leads(
+    leads: list[dict[str, Any]],
+    *,
+    persona_id: str | None = None,
+    validation_scope: str = "all",
+) -> list[dict[str, Any]]:
+    base_url, token = _configuration()
+    try:
+        with httpx.Client(timeout=15, verify=get_ca_bundle_path()) as client:
+            response = client.post(
+                base_url + "/internal/v1/runtime/leads/decorate",
+                json={"leads": leads, "persona_id": persona_id, "validation_scope": validation_scope},
+                headers={"X-Webhook-Token": token},
+            )
+    except httpx.HTTPError as exc:
+        raise HTTPException(502, "Conversation runtime is unavailable.") from exc
+    if response.status_code >= 400:
+        raise HTTPException(response.status_code, "Conversation runtime rejected lead decoration.")
+    try:
+        items = response.json().get("items")
+    except (ValueError, AttributeError) as exc:
+        raise HTTPException(502, "Conversation runtime returned invalid lead decorations.") from exc
+    if not isinstance(items, list):
+        raise HTTPException(502, "Conversation runtime returned invalid lead decorations.")
+    return [item for item in items if isinstance(item, dict)]

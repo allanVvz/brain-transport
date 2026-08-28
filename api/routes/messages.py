@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
@@ -9,10 +10,11 @@ from pydantic import BaseModel
 from services import (
     auth_service,
     event_emitter,
-    lead_qualification,
     internal_auth,
     operator_messaging,
+    runtime_client,
     supabase_client,
+    validator_media,
     whatsapp_outbox,
 )
 
@@ -38,6 +40,36 @@ class InternalPortalMessageBody(BaseModel):
     media_base64: str | None = None
     media_mime: str | None = None
     media_filename: str | None = None
+
+
+class InternalOutboundBody(BaseModel):
+    lead: dict[str, Any]
+    text: str
+    sender_type: str = "agent"
+    message_id: str
+    correlation_id: str
+    idempotency_key: str
+    initial_status: str = "pending_send"
+    metadata: dict[str, Any] | None = None
+    media: dict[str, Any] | None = None
+    template: dict[str, Any] | None = None
+    campaign_scope: dict[str, Any] | None = None
+
+
+class InternalCampaignOutboundBody(InternalOutboundBody):
+    sender_type: str = "campaign"
+    campaign_scope: dict[str, Any]
+
+
+class InternalValidatorMediaBody(BaseModel):
+    session_id: str
+    persona_id: str
+    lead_ref: int
+    channel_binding_id: str | None = None
+    filename: str
+    mime: str
+    content_base64: str
+    idempotency_key: str
 
 
 def _decode_message_cursor(value: str | None) -> tuple[str | None, int | None]:
@@ -183,6 +215,58 @@ def send_portal_message_internal(
     )
 
 
+@internal_router.post("/campaign-outbound")
+def enqueue_campaign_outbound_internal(
+    body: InternalCampaignOutboundBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    """Accept one idempotent campaign command from the control plane.
+
+    Provider selection, the delivery queue and delivery status remain owned by
+    transport; campaign policy and recipient selection never move here.
+    """
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    return whatsapp_outbox.enqueue_outbound(**body.model_dump())
+
+
+@internal_router.post("/prepare-outbound")
+def prepare_outbound_internal(
+    body: InternalOutboundBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    """Build a provider-safe envelope for the runtime's atomic proof commit."""
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    return whatsapp_outbox.prepare_outbound_envelope(**body.model_dump())
+
+
+@internal_router.post("/outbound")
+def enqueue_outbound_internal(
+    body: InternalOutboundBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    """Persist one idempotent runtime outbound under transport ownership."""
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    return whatsapp_outbox.enqueue_outbound(**body.model_dump())
+
+
+@internal_router.post("/validator-media")
+def store_validator_media_internal(
+    body: InternalValidatorMediaBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    try:
+        content = base64.b64decode(body.content_base64, validate=True)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(422, "Midia base64 invalida") from exc
+    try:
+        return validator_media.store(
+            **body.model_dump(exclude={"content_base64"}), content=content,
+        )
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
 def _resolve_scope_lead_refs(
     request: Request,
     *,
@@ -221,10 +305,15 @@ def _decorate_conversations(
         for row in rows
         if row.get("lead_ref") is not None
     ])
+    decorated_leads = runtime_client.decorate_leads(list(leads_by_ref.values()))
+    qualification_by_ref = {
+        int(lead["id"]): lead
+        for lead in decorated_leads
+        if lead.get("id") is not None
+    }
     for row in rows:
         lead_ref = row.get("lead_ref")
-        lead = leads_by_ref.get(int(lead_ref), {}) if lead_ref is not None else {}
-        extra = lead_qualification.decorate_lead(lead)
+        extra = qualification_by_ref.get(int(lead_ref), {}) if lead_ref is not None else {}
         is_validation = bool(extra.get("validation", {}).get("is_validation"))
         if validation_scope == "only" and not is_validation:
             continue
@@ -329,7 +418,8 @@ def get_messages_by_ref(
     if (user.get("account_type") or "internal") == "client":
         validation_scope = "exclude"
     if lead:
-        is_validation = lead_qualification.is_validation_lead(lead)
+        decorated = runtime_client.decorate_leads([lead])
+        is_validation = bool((decorated[0] if decorated else {}).get("validation", {}).get("is_validation"))
         if (
             (validation_scope == "only" and not is_validation)
             or (validation_scope == "exclude" and is_validation)

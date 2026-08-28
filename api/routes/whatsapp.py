@@ -11,14 +11,16 @@ import logging
 import os
 import time
 import re
+import httpx
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from starlette.responses import PlainTextResponse
 
-from services import event_emitter, media_ingest, supabase_client
+from services import event_emitter, internal_auth, media_ingest, secret_store, supabase_client
+from services.whatsapp_providers import get_provider
 from services.whatsapp_providers.meta import MetaWhatsAppProvider
 
 router = APIRouter(prefix="/webhooks/whatsapp", tags=["whatsapp"])
@@ -28,6 +30,19 @@ logger = logging.getLogger("whatsapp")
 # Meta's had none at all. Same env var name/default so both providers share
 # one documented limit.
 MAX_WEBHOOK_BYTES = int(os.environ.get("EVOLUTION_WEBHOOK_MAX_BYTES", str(2 * 1024 * 1024)))
+
+
+class EvolutionProvisionBody(BaseModel):
+    binding_id: str
+    webhook_url: str
+    webhook_token: str
+
+
+class EvolutionActionBody(BaseModel):
+    binding_id: str
+    action: Literal["get_qr_code", "restart_instance", "logout_instance"]
+    webhook_url: str | None = None
+    webhook_token: str | None = None
 
 
 def _mask(phone: str | None) -> str | None:
@@ -300,3 +315,73 @@ def outbound_result(body: OutboundResult, x_webhook_token: str | None = Header(N
         "status": result.get("status"),
         "deduplicated": bool(result.get("deduplicated")),
     }
+
+
+def _evolution_binding(binding_id: str) -> dict:
+    binding = supabase_client.get_workflow_binding_by_id(binding_id) or {}
+    if not binding or binding.get("provider") != "evolution_baileys":
+        raise HTTPException(404, "Evolution binding not found")
+    return binding
+
+
+@internal_router.post("/evolution/provision")
+def provision_evolution_internal(
+    body: EvolutionProvisionBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    binding = _evolution_binding(body.binding_id)
+    instance_key = str(binding.get("provider_instance_key") or "")
+    instance_token = secret_store.decrypt_secret(binding.get("provider_secret_ciphertext"))
+    if not instance_key or not instance_token:
+        raise HTTPException(409, "Evolution binding is incomplete")
+    try:
+        result = get_provider("evolution_baileys").provision_instance(
+            instance_key, instance_token, body.webhook_url,
+            webhook_token=body.webhook_token,
+        )
+    except Exception as exc:
+        supabase_client.update_workflow_binding(
+            body.binding_id, {"active": False, "connection_status": "failed"}
+        )
+        raise HTTPException(502, "Evolution provisioning failed") from exc
+    supabase_client.update_workflow_binding(
+        body.binding_id, {"active": False, "connection_status": "connecting"}
+    )
+    return result if isinstance(result, dict) else {"ok": True}
+
+
+@internal_router.post("/evolution/action")
+def evolution_action_internal(
+    body: EvolutionActionBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    binding = _evolution_binding(body.binding_id)
+    provider = get_provider("evolution_baileys")
+    try:
+        result = getattr(provider, body.action)(binding)
+    except httpx.HTTPStatusError as exc:
+        if (
+            body.action != "get_qr_code" or exc.response.status_code != 404
+            or not binding.get("active") or not body.webhook_url or not body.webhook_token
+        ):
+            raise
+        token = secret_store.decrypt_secret(binding.get("provider_secret_ciphertext"))
+        provider.provision_instance(
+            str(binding.get("provider_instance_key") or ""), token,
+            body.webhook_url, webhook_token=body.webhook_token,
+        )
+        supabase_client.update_workflow_binding(
+            body.binding_id, {"connection_status": "connecting"}
+        )
+        result = provider.get_qr_code(binding)
+    if body.action == "logout_instance":
+        supabase_client.update_workflow_binding(
+            body.binding_id, {"connection_status": "disconnected"}
+        )
+    elif body.action == "get_qr_code" and result.get("status") == "qr_ready":
+        supabase_client.update_workflow_binding(
+            body.binding_id, {"connection_status": "qr_ready"}
+        )
+    return result
