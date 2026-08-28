@@ -3,7 +3,7 @@ import json
 import logging
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Header, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from services import (
@@ -11,11 +11,14 @@ from services import (
     auth_service,
     event_emitter,
     lead_qualification,
+    internal_auth,
+    operator_messaging,
     supabase_client,
     whatsapp_outbox,
 )
 
 router = APIRouter(prefix="/messages", tags=["messages"])
+internal_router = APIRouter(prefix="/internal/v1/transport/messages", tags=["messages"])
 logger = logging.getLogger("messages")
 
 
@@ -26,6 +29,16 @@ class SendMessageBody(BaseModel):
     texto: str
     sender_id: str | None = None
     nome: str | None = None
+
+
+class InternalPortalMessageBody(BaseModel):
+    persona_id: str
+    lead_ref: int
+    client_message_id: UUID
+    text: str = ""
+    media_base64: str | None = None
+    media_mime: str | None = None
+    media_filename: str | None = None
 
 
 def _decode_message_cursor(value: str | None) -> tuple[str | None, int | None]:
@@ -147,6 +160,36 @@ def send_message(body: SendMessageBody, request: Request) -> dict:
         "buffer_id": result["buffer_id"],
         "deduplicated": bool(result.get("deduplicated")),
     }
+
+
+@internal_router.post("/send")
+def send_portal_message_internal(
+    body: InternalPortalMessageBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+    x_brain_actor_id: str | None = Header(None, alias="X-Brain-Actor-Id"),
+) -> dict:
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    media = None
+    if body.media_base64:
+        try:
+            data = base64.b64decode(body.media_base64, validate=True)
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(422, "Midia base64 invalida") from exc
+        if len(data) > 25 * 1024 * 1024:
+            raise HTTPException(413, "Arquivo excede 25 MiB")
+        media = {
+            "data": data,
+            "mime": body.media_mime or "application/octet-stream",
+            "filename": body.media_filename or "arquivo",
+        }
+    return operator_messaging.enqueue(
+        lead_ref=body.lead_ref,
+        persona_id=body.persona_id,
+        client_message_id=str(body.client_message_id),
+        text=body.text,
+        media=media,
+        metadata={"actor_user_id": x_brain_actor_id},
+    )
 
 
 def _resolve_scope_lead_refs(

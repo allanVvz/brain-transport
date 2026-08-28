@@ -19,6 +19,7 @@ PUBLIC_EXACT_PATHS = {
     "/webhooks/whatsapp/inbound",
     "/webhooks/whatsapp/status",
     "/internal/v1/transport/whatsapp/outbound-result",
+    "/internal/v1/transport/messages/send",
 }
 
 ADMIN_TOKEN_HEADER = "x-ai-brain-admin-token"

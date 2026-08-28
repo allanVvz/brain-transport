@@ -33,6 +33,7 @@ def test_service_identity_and_readiness_surface():
     assert "/health" in paths
     assert "/health/ready" in paths
     assert "/internal/v1/transport/whatsapp/outbound-result" in paths
+    assert "/internal/v1/transport/messages/send" in paths
     assert "/internal/whatsapp/outbound-result" not in paths
 
 
