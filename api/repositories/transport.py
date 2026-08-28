@@ -1,5 +1,6 @@
 ﻿import os
 import re
+import base64
 import time
 import unicodedata
 import json
@@ -12,6 +13,7 @@ from services.public_site import DEFAULT_FORMATS
 
 _client: Optional[Client] = None
 _UNSET = object()
+EXPECTED_DB_ROLE = "brain_transport"
 _TRANSIENT_ERROR_MARKERS = (
     "Server disconnected",
     "RemoteProtocolError",
@@ -32,6 +34,22 @@ def _supabase_ssl_verify() -> bool:
     return runtime == "production"
 
 
+def _validated_db_jwt() -> str:
+    token = (os.environ.get("BRAIN_DB_JWT") or "").strip()
+    try:
+        payload_segment = token.split(".")[1]
+        padding = "=" * (-len(payload_segment) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(payload_segment + padding))
+    except (IndexError, ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError("BRAIN_DB_JWT must be a valid role-scoped JWT") from exc
+    role = str(payload.get("role") or "")
+    if role != EXPECTED_DB_ROLE:
+        raise RuntimeError(
+            f"BRAIN_DB_JWT role must be {EXPECTED_DB_ROLE!r}, got {role!r}"
+        )
+    return token
+
+
 def get_client() -> Client:
     global _client
     if _client is None:
@@ -48,7 +66,7 @@ def get_client() -> Client:
         http_client = httpx.Client(verify=_supabase_ssl_verify(), timeout=timeout_seconds)
         _client = create_client(
             os.environ["SUPABASE_URL"],
-            os.environ["BRAIN_TRANSPORT_DB_KEY"],
+            _validated_db_jwt(),
             options=ClientOptions(httpx_client=http_client),
         )
     return _client
@@ -6478,4 +6496,3 @@ def get_knowledge_items_multi(
     if content_type:
         q = q.eq("content_type", content_type)
     return _q(q)
-
