@@ -21,10 +21,8 @@ jobs:
       - run: python -m json.tool SERVICE_MANIFEST.json >/dev/null
       - run: '! grep -R "SUPABASE_SERVICE_KEY" api --include="*.py"'
       - name: Service tests
-        working-directory: api
         env:
           SUPABASE_OFFLINE: "true"
           KNOWLEDGE_TAXONOMY_OFFLINE: "true"
           CURRENT_SCHEMA_VERSION: "130"
-        run: python -m pytest -q tests
-
+        run: python -m pytest -q api/tests tests
