@@ -1,4 +1,4 @@
-﻿"""Deterministic anti-repetition policy shared by conversation quality gates."""
+"""Deterministic anti-repetition policy shared by conversation quality gates."""
 from __future__ import annotations
 
 import re
@@ -157,4 +157,3 @@ def assess_repetition(
         "contextual_bridge": _contextual_bridge(current_reply, question_text),
         "terminal_intent": terminal_intent,
     }
-

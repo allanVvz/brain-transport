@@ -1,4 +1,4 @@
-﻿"""Emit a secret-free audit of GraphRAG publications, bindings and n8n wiring."""
+"""Emit a secret-free audit of GraphRAG publications, bindings and n8n wiring."""
 from __future__ import annotations
 
 import hashlib
@@ -114,4 +114,3 @@ if __name__ == "__main__":
         }) == 1
     })
     print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
-

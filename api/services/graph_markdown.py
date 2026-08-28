@@ -1,4 +1,4 @@
-﻿"""Deterministic Markdown renderers for closed Graph JSON versions."""
+"""Deterministic Markdown renderers for closed Graph JSON versions."""
 from __future__ import annotations
 
 import hashlib
@@ -111,11 +111,11 @@ def _relation_lines(graph: GraphJson, node: Node) -> tuple[list[str], list[str],
         other = by_id.get(other_id)
         if not other:
             continue
-        arrow = "â†’" if edge.source == node.id else "â†"
+        arrow = "→" if edge.source == node.id else "←"
         line = f"- `{relation}` {arrow} {other.title or other.label} (`{other.node_type}`)"
         if relation == "publishes_to":
             publications.append(
-                f"- {other.title or other.label} â€” {edge.lifecycle.status}"
+                f"- {other.title or other.label} — {edge.lifecycle.status}"
             )
         elif relation == "contains" and edge.target == node.id:
             incoming.append(line)
@@ -179,16 +179,16 @@ def _render_v21_node(graph: GraphJson, node: Node) -> str:
                 rendered = json.dumps(value, ensure_ascii=False, sort_keys=True) if isinstance(value, (dict, list)) else str(value)
                 lines.append(f"- **{_heading(key)}:** {rendered}")
     for title, values in (
-        ("RelaÃ§Ãµes ascendentes", incoming),
-        ("RelaÃ§Ãµes descendentes", outgoing),
-        ("RelaÃ§Ãµes laterais", lateral),
-        ("PublicaÃ§Ã£o", publications),
+        ("Relações ascendentes", incoming),
+        ("Relações descendentes", outgoing),
+        ("Relações laterais", lateral),
+        ("Publicação", publications),
     ):
         if values:
             lines.extend(["", f"## {title}", "", *values])
     lines.extend([
         "", "## Origem e rastreabilidade", "",
-        f"- RevisÃ£o: {node.lifecycle.revision}",
+        f"- Revisão: {node.lifecycle.revision}",
         f"- Fonte: {frontmatter['source']}",
     ])
     return "\n".join(lines).strip()
@@ -268,4 +268,3 @@ def canonicalize_graph(graph: GraphJson, *, reject_markdown_drift: bool = True) 
     if errors:
         raise GraphMarkdownError(errors)
     return normalized
-

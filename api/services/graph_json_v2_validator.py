@@ -1,7 +1,7 @@
-﻿"""Canonical chain validator for graph_json v2 â€” BRA-75 MVP.
+"""Canonical chain validator for graph_json v2 — BRA-75 MVP.
 
 Enforces a subset of the rules from
-`ai-brain/docs/architecture/graph-json-canonical-architecture.md` Â§6 sufficient
+`ai-brain/docs/architecture/graph-json-canonical-architecture.md` §6 sufficient
 for the MVP: chain integrity, persona-children rule, no-orphan, no-cycle,
 edge-consistency, no duplicate slug per node_type within scope.
 """
@@ -34,7 +34,7 @@ CANONICAL_PARENT: dict[str, tuple[str, ...]] = {
     "faq": ("copy", "product", "product_group", "audience", "briefing", "campaign", "brand", "persona", "rule"),
     "embedded": ("faq",),
     # One node per lead that has an open conversation, hanging under the
-    # audience it belongs to â€” which in turn hangs under the campaign that
+    # audience it belongs to — which in turn hangs under the campaign that
     # originated the outreach. Files a customer sends over WhatsApp attach
     # here, so a received photo is traceable to the campaign that produced it.
     "conversation": ("audience",),
@@ -757,4 +757,3 @@ def validate_graph_json(graph: "GraphJson") -> tuple[bool, list[str]]:
 
     _validate_appointment_policy(graph.nodes, errors)
     return (not errors, errors)
-

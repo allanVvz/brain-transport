@@ -1,4 +1,4 @@
-﻿"""Portuguese translations + a suggested next question for the raw error
+"""Portuguese translations + a suggested next question for the raw error
 codes services.graph_bundle/graph_compiler_v3 raise. Consumed by the save()
 response (kb_intake_service._save_via_graph_bundle) and by the graph-sidebar
 route so an operator/Sofia session never has to interpret a bare code like
@@ -19,31 +19,31 @@ _Translator = Callable[[str], dict[str, Any]]
 
 def _primary_parent_missing(rest: str) -> dict[str, Any]:
     return {
-        "message": f"O item '{rest}' nÃ£o tem um pai claro na Ã¡rvore de conhecimento.",
+        "message": f"O item '{rest}' não tem um pai claro na árvore de conhecimento.",
         "suggested_question": (
             f"Onde o item '{rest}' deveria entrar? Responda com o nome da marca, "
-            "campanha, audiÃªncia ou produto que deveria ser o pai dele."
+            "campanha, audiência ou produto que deveria ser o pai dele."
         ),
     }
 
 
 def _primary_parent_ambiguous(rest: str) -> dict[str, Any]:
     return {
-        "message": f"O item '{rest}' estÃ¡ sendo apontado como filho de mais de um lugar ao mesmo tempo.",
-        "suggested_question": f"Qual desses Ã© o pai correto de '{rest}'? SÃ³ pode ser um.",
+        "message": f"O item '{rest}' está sendo apontado como filho de mais de um lugar ao mesmo tempo.",
+        "suggested_question": f"Qual desses é o pai correto de '{rest}'? Só pode ser um.",
     }
 
 
 def _no_branch_anchor(_rest: str) -> dict[str, Any]:
     return {
         "message": (
-            "Esta persona ainda nÃ£o tem nenhum ramo de qualificaÃ§Ã£o "
-            "(ex.: varejo/atacado, uso prÃ³prio/revenda). Toda persona de "
+            "Esta persona ainda não tem nenhum ramo de qualificação "
+            "(ex.: varejo/atacado, uso próprio/revenda). Toda persona de "
             "vendas precisa de pelo menos um."
         ),
         "suggested_question": (
             "Que jeitos diferentes de comprar/ser atendido existem aqui? "
-            "Vou marcar o primeiro como ramo de qualificaÃ§Ã£o."
+            "Vou marcar o primeiro como ramo de qualificação."
         ),
     }
 
@@ -53,42 +53,42 @@ def _node_not_publishable(rest: str) -> dict[str, Any]:
     # a colon, so split from the right on the LAST colon to isolate status.
     node_id, _, status = rest.rpartition(":")
     return {
-        "message": f"O item '{node_id}' ainda estÃ¡ com status '{status}' e nÃ£o pode ser publicado.",
-        "suggested_question": f"Posso confirmar '{node_id}' agora, ou vocÃª ainda quer revisar antes?",
+        "message": f"O item '{node_id}' ainda está com status '{status}' e não pode ser publicado.",
+        "suggested_question": f"Posso confirmar '{node_id}' agora, ou você ainda quer revisar antes?",
     }
 
 
 def _source_pending(rest: str) -> dict[str, Any]:
     return {
-        "message": f"O item '{rest}' nÃ£o tem uma fonte de informaÃ§Ã£o registrada.",
-        "suggested_question": f"De onde veio a informaÃ§Ã£o de '{rest}'? (conversa, site, documento enviado...)",
+        "message": f"O item '{rest}' não tem uma fonte de informação registrada.",
+        "suggested_question": f"De onde veio a informação de '{rest}'? (conversa, site, documento enviado...)",
     }
 
 
 def _content_required(rest: str) -> dict[str, Any]:
     return {
-        "message": f"O item '{rest}' estÃ¡ sem nenhum conteÃºdo (resumo, pergunta/resposta ou texto).",
+        "message": f"O item '{rest}' está sem nenhum conteúdo (resumo, pergunta/resposta ou texto).",
         "suggested_question": f"O que '{rest}' deveria dizer?",
     }
 
 
 def _persona_slug_mismatch(rest: str) -> dict[str, Any]:
     return {
-        "message": "O node de persona estÃ¡ com um identificador que nÃ£o bate com a persona da sessÃ£o.",
+        "message": "O node de persona está com um identificador que não bate com a persona da sessão.",
         "suggested_question": None,
     }
 
 
 def _cycle(rest: str) -> dict[str, Any]:
     return {
-        "message": f"Existe um ciclo na Ã¡rvore envolvendo '{rest}' -- um item acabou virando pai de si mesmo, indiretamente.",
-        "suggested_question": f"Qual desses nÃ³s em '{rest}' deveria realmente ser o pai, e qual o filho?",
+        "message": f"Existe um ciclo na árvore envolvendo '{rest}' -- um item acabou virando pai de si mesmo, indiretamente.",
+        "suggested_question": f"Qual desses nós em '{rest}' deveria realmente ser o pai, e qual o filho?",
     }
 
 
 def _duplicate_edge(rest: str) -> dict[str, Any]:
     return {
-        "message": f"A conexÃ£o '{rest}' foi proposta mais de uma vez.",
+        "message": f"A conexão '{rest}' foi proposta mais de uma vez.",
         "suggested_question": None,
     }
 
@@ -103,7 +103,7 @@ _TRANSLATORS: list[tuple[str, _Translator]] = [
     ("bundle_node_content_required:", _content_required),
     ("bundle_persona_slug_mismatch:", _persona_slug_mismatch),
     ("bundle_duplicate_node_id:", lambda rest: {
-        "message": f"O identificador '{rest}' estÃ¡ sendo usado por mais de um item.",
+        "message": f"O identificador '{rest}' está sendo usado por mais de um item.",
         "suggested_question": None,
     }),
     ("bundle_duplicate_edge:", _duplicate_edge),
@@ -122,11 +122,10 @@ def translate_error(raw_error: str) -> dict[str, Any]:
             return result
     return {
         "code": raw_error,
-        "message": f"Erro tÃ©cnico nÃ£o catalogado: {raw_error}",
-        "suggested_question": "Isso precisa de revisÃ£o manual antes de continuar.",
+        "message": f"Erro técnico não catalogado: {raw_error}",
+        "suggested_question": "Isso precisa de revisão manual antes de continuar.",
     }
 
 
 def translate_errors(raw_errors: list[str]) -> list[dict[str, Any]]:
     return [translate_error(e) for e in (raw_errors or [])]
-

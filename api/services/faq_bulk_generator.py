@@ -1,4 +1,4 @@
-﻿"""Generate real FAQ (question+answer) content for one branch of the
+"""Generate real FAQ (question+answer) content for one branch of the
 knowledge tree -- the piece `sofia_tools.tool_generate_faq_from_branch` has
 always been a placeholder for (see its docstring: "O conteudo real ...
 sera preenchido pelo worker da Janela 4" -- that worker was never built).
@@ -12,7 +12,7 @@ Two callers share this one engine:
 
 Both produce plain `{question, answer}` pairs grounded ONLY in the branch's
 own title/content/tags -- the prompt explicitly forbids inventing facts not
-present in the chain, mirroring the project's "nÃ£o inventar produtos/preÃ§o"
+present in the chain, mirroring the project's "não inventar produtos/preço"
 rule already enforced elsewhere (docs/tock-fatal-modal-marketing-graph.md's
 `regra-nao-inventar-produtos-tock`).
 
@@ -58,8 +58,8 @@ def _skills_context(skill_names: tuple[str, ...]) -> str:
     if not blocks:
         return ""
     return (
-        "Guias de tom/qualidade de escrita jÃ¡ validados neste projeto "
-        "(aplique o espÃ­rito, nÃ£o copie literalmente -- essas skills foram "
+        "Guias de tom/qualidade de escrita já validados neste projeto "
+        "(aplique o espírito, não copie literalmente -- essas skills foram "
         "escritas para outra persona):\n\n" + "\n\n".join(blocks)
     )
 
@@ -95,13 +95,13 @@ def generate_faqs_for_chain(
     branch_text = _chain_to_text(chain)
     skills_text = _skills_context(skills)
     prompt = (
-        f"Gere atÃ© {max_questions} pares de pergunta e resposta (FAQ) que um "
-        "cliente real perguntaria sobre este ramo do catÃ¡logo, no WhatsApp. "
-        "Use SOMENTE os fatos abaixo -- nunca invente preÃ§o, prazo, estoque, "
-        "composiÃ§Ã£o ou qualquer dado que nÃ£o esteja explicitamente escrito. "
+        f"Gere até {max_questions} pares de pergunta e resposta (FAQ) que um "
+        "cliente real perguntaria sobre este ramo do catálogo, no WhatsApp. "
+        "Use SOMENTE os fatos abaixo -- nunca invente preço, prazo, estoque, "
+        "composição ou qualquer dado que não esteja explicitamente escrito. "
         "Perguntas curtas e diretas, como uma pessoa real escreveria. "
         "Respostas curtas, no mesmo tom do ramo.\n\n"
-        f"Ramo (do mais especÃ­fico ao mais geral):\n{branch_text}\n\n"
+        f"Ramo (do mais específico ao mais geral):\n{branch_text}\n\n"
         + (f"{skills_text}\n\n" if skills_text else "")
         + 'Responda SOMENTE um array JSON: [{"question": str, "answer": str}, ...]. '
         "Sem texto fora do array."
@@ -112,8 +112,8 @@ def generate_faqs_for_chain(
             model=model,
             messages=[{"role": "user", "content": prompt}],
             system=(
-                "VocÃª escreve FAQ para atendimento comercial no WhatsApp. "
-                "Nunca inventa fato nÃ£o fornecido. Responde sÃ³ com JSON vÃ¡lido."
+                "Você escreve FAQ para atendimento comercial no WhatsApp. "
+                "Nunca inventa fato não fornecido. Responde só com JSON válido."
             ),
             max_tokens=4000,
         )
@@ -168,4 +168,3 @@ def build_chain_from_live_graph(node_rows: list[dict], edge_rows: list[dict], no
         })
         cursor = parent_by_child.get(cursor) or ""
     return chain
-

@@ -3261,4 +3261,3 @@ def _flows_for_business_model(business_model: str | None) -> list:
         or not _FLOW_BUSINESS_MODELS.get(k)
         or business_model in _FLOW_BUSINESS_MODELS[k]
     ]
-

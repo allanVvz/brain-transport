@@ -1,4 +1,4 @@
-﻿"""Gated GraphBundle materialization, staging and activation.
+"""Gated GraphBundle materialization, staging and activation.
 
 The source graph is materialized first, then recompiled from the canonical
 knowledge tables. The staged runtime checksum must equal the reviewed plan.
@@ -283,4 +283,3 @@ def activate_staged_bundle(
         },
     }, source="services.graph_bundle_publisher")
     return {"publication": publication, "activation": activation}
-

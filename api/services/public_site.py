@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 import unicodedata
@@ -134,4 +134,3 @@ def public_site_payload(
             "href": href,
         },
     }
-

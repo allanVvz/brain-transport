@@ -1,4 +1,4 @@
-﻿"""Compile current canonical knowledge graphs into GraphRAG v3 publications."""
+"""Compile current canonical knowledge graphs into GraphRAG v3 publications."""
 from __future__ import annotations
 
 import argparse
@@ -21,7 +21,7 @@ def _record_pending_validation(persona: dict, errors: list[str]) -> dict:
     item_payload = {
         "persona_id": persona["id"], "source_id": source.get("id"),
         "status": "pending", "content_type": "briefing",
-        "title": "GraphRAG v3 â€” lacunas de publicaÃ§Ã£o",
+        "title": "GraphRAG v3 — lacunas de publicação",
         "content": content, "metadata": {
             "source": "pending_source", "validation_status": "pending_validation",
             "graph_runtime": "graph_agent_runtime_v3", "validation_errors": errors,
@@ -44,7 +44,7 @@ def _record_pending_validation(persona: dict, errors: list[str]) -> dict:
         "persona_id": persona["id"], "source_table": "knowledge_items",
         "source_id": item.get("id"), "node_type": "briefing",
         "slug": "graph-agent-runtime-v3-gaps",
-        "title": "GraphRAG v3 â€” lacunas de publicaÃ§Ã£o", "summary": content[:400],
+        "title": "GraphRAG v3 — lacunas de publicação", "summary": content[:400],
         "tags": ["graphrag-v3", "pending-validation"],
         "metadata": {
             "source": "pending_source", "validation_status": "pending_validation",
@@ -162,4 +162,3 @@ if __name__ == "__main__":
         activate_runtime=args.activate_runtime, shadow=args.shadow,
         compile_only=args.compile_only,
     ), ensure_ascii=False, default=str))
-

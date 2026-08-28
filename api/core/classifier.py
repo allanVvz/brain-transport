@@ -1,4 +1,4 @@
-﻿import json
+import json
 import re
 from schemas.context import Context
 from pathlib import Path
@@ -12,7 +12,7 @@ _DEFAULTS = {
     "urgency": "baixa",
     "fit": "neutro",
     "objections": [],
-    "summary": "ClassificaÃ§Ã£o falhou â€” usando defaults",
+    "summary": "Classificação falhou — usando defaults",
     "route_hint": "SDR",
 }
 
@@ -24,15 +24,15 @@ def classify(ctx: Context) -> dict:
     )
 
     classifier_input = (
-        f"INFORMAÃ‡Ã•ES DO LEAD:\n"
-        f"Nome: {ctx.lead.nome or 'nÃ£o informado'}\n"
-        f"Produto de interesse: {ctx.lead.interesse_produto or 'nÃ£o informado'}\n"
+        f"INFORMAÇÕES DO LEAD:\n"
+        f"Nome: {ctx.lead.nome or 'não informado'}\n"
+        f"Produto de interesse: {ctx.lead.interesse_produto or 'não informado'}\n"
         f"Stage atual: {ctx.lead.stage}\n"
         f"Canal: {ctx.lead.canal}\n"
-        f"Cidade: {ctx.lead.cidade or 'nÃ£o informada'}\n"
-        f"CEP: {ctx.lead.cep or 'nÃ£o informado'}\n\n"
+        f"Cidade: {ctx.lead.cidade or 'não informada'}\n"
+        f"CEP: {ctx.lead.cep or 'não informado'}\n\n"
         f"MENSAGEM DO LEAD:\n{ctx.mensagem}\n\n"
-        f"HISTÃ“RICO:\n{history_text or 'sem histÃ³rico'}"
+        f"HISTÓRICO:\n{history_text or 'sem histórico'}"
     )
 
     prompt = _PROMPT.replace("{{classifier_input}}", classifier_input)
@@ -49,4 +49,3 @@ def classify(ctx: Context) -> dict:
             except json.JSONDecodeError:
                 pass
         return dict(_DEFAULTS)
-

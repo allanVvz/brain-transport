@@ -1,4 +1,4 @@
-﻿"""Crawler reusavel para extrair colecoes + produtos de lojas Shopify (ou compativeis).
+"""Crawler reusavel para extrair colecoes + produtos de lojas Shopify (ou compativeis).
 
 Uso:
     python crawl_brand_catalog.py --brand vzlupas --output catalog.json
@@ -101,4 +101,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

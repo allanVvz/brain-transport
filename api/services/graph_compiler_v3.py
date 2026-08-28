@@ -1,4 +1,4 @@
-﻿"""Compile editable knowledge tables into immutable GraphRAG v3 publications.
+"""Compile editable knowledge tables into immutable GraphRAG v3 publications.
 
 This is deliberately a compiler, not a dialog engine.  Commercial concepts are
 read from node metadata/capabilities; the compiler only proves structural and
@@ -1479,4 +1479,3 @@ def compile_persona_publication(
     except Exception:
         client.table("graph_publications").update({"status": "failed"}).eq("id", publication_id).execute()
         raise
-

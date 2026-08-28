@@ -1,4 +1,4 @@
-﻿"""Graph-backed Vitoria conversation runtime used by persona n8n workflows."""
+"""Graph-backed Vitoria conversation runtime used by persona n8n workflows."""
 from __future__ import annotations
 
 import json
@@ -90,7 +90,7 @@ def emit_turn_event(
                 },
             }
         )
-    except Exception:  # noqa: BLE001 â€” observability must never break the turn
+    except Exception:  # noqa: BLE001 — observability must never break the turn
         logger.warning(
             "emit_turn_event failed agent_name=%s trace_id=%s", agent_name, trace_id,
             exc_info=True,
@@ -202,9 +202,9 @@ def strict_model_decision(
     ]
     schema = ConversationDecision.model_json_schema()
     prompt = (
-        "Classifique a conversa usando apenas os IDs de evidÃªncia fornecidos. "
-        "NÃ£o calcule preÃ§o ou total e nÃ£o altere o carrinho. Responda somente "
-        "com JSON compatÃ­vel com o schema.\n"
+        "Classifique a conversa usando apenas os IDs de evidência fornecidos. "
+        "Não calcule preço ou total e não altere o carrinho. Responda somente "
+        "com JSON compatível com o schema.\n"
         f"SCHEMA={json.dumps(schema, ensure_ascii=False)}\n"
         f"MESSAGES={json.dumps(context.messages[-20:], ensure_ascii=False)}\n"
         f"CART={json.dumps(context.cart, ensure_ascii=False)}\n"
@@ -215,7 +215,7 @@ def strict_model_decision(
         request = prompt
         if attempt:
             request += (
-                "\nA saÃ­da anterior foi invÃ¡lida. Corrija uma Ãºnica vez. "
+                "\nA saída anterior foi inválida. Corrija uma única vez. "
                 f"ERRO={error}"
             )
         try:
@@ -300,7 +300,7 @@ def _appointment_policy(graph: Any) -> dict[str, Any]:
 # never be the sole authority on a price or schedule confirmation.
 # conversation_runtime.commit()'s _reply_confirms_price_or_schedule guard
 # already enforces this server-side independent of what the agent
-# produces â€” this instruction is a first line of defense, not the only one.
+# produces — this instruction is a first line of defense, not the only one.
 _AGENTIC_SAFETY_INSTRUCTIONS = (
     "Nunca confirme preco final, disponibilidade, data ou horario sem uma "
     "regra e evidencia publicadas que autorizem isso. Responda apenas com "
@@ -424,12 +424,12 @@ def build_system_prompt(graph: Any, cards: list[Any] | None = None) -> str:
     lines.append(
         "Enquanto estiver ativo, responda o que voce consegue com base no "
         "conhecimento aprovado e conduza a conversa fazendo perguntas de "
-        "qualificacao adequadas, como um bom vendedor faria â€” nao apenas "
+        "qualificacao adequadas, como um bom vendedor faria — nao apenas "
         "responda e espere a proxima pergunta. Va com calma: peca apenas "
         "UMA informacao pendente por mensagem (no maximo duas, e so se "
         "forem intimamente relacionadas, como marca e modelo do mesmo "
         "item). Nunca liste tres ou mais perguntas na mesma mensagem, "
-        "principalmente na primeira interacao com o cliente â€” isso "
+        "principalmente na primeira interacao com o cliente — isso "
         "cansa e afasta. Deixe a conversa fluir por varias mensagens "
         "curtas, como uma pessoa conversando de verdade, nao um "
         "formulario."
@@ -441,7 +441,7 @@ def _commercial_note_fields(context: ConversationContext) -> list[str]:
     """Field names this persona wants mirrored into leads.metadata.commercial_note.
 
     Declared per persona in its graph's persona-node data
-    (`commercial_note_fields: [...]`), not hardcoded here â€” any business
+    (`commercial_note_fields: [...]`), not hardcoded here — any business
     model, any engine. commit() only has `context.rag_nodes` (flattened
     node dicts), not the full GraphJson, so this reads from there instead
     of `_appointment_policy`.
@@ -463,11 +463,11 @@ def _merge_extracted_fields(cart_state: dict[str, Any], extracted_fields: dict[s
     field is next in missing_fields, and treats the *entire* message as
     that field's value. A customer answering several fields in one
     natural sentence containing multiple qualification facts only ever
-    fills the first â€” the agent's reply claimed the rest was "anotado"
+    fills the first — the agent's reply claimed the rest was "anotado"
     when it never reached appointment_request at all.
 
     The agentic engine (DeepSeek) reads the whole message and the list of
-    missing fields, so it can extract more than one at once â€” but it must
+    missing fields, so it can extract more than one at once — but it must
     never be trusted blindly: only fields genuinely still in
     missing_fields get accepted, and an already-filled field is never
     overwritten by agent output, exactly mirroring _collect()'s own
@@ -497,13 +497,13 @@ def _resolve_identified_service(
     """Fold an AI-inferred service into extracted_fields, safely.
 
     Confirmed live 2026-08-01: a customer describing a symptom ("risco
-    fundo na porta") got a reply that correctly recommended "chapeaÃ§Ã£o",
-    but "servico" stayed in missing_fields forever â€” the customer never
+    fundo na porta") got a reply that correctly recommended "chapeação",
+    but "servico" stayed in missing_fields forever — the customer never
     said the word themselves, so the extraction contract (which only
     covers fields the customer explicitly answered) never captured it.
     identified_service_slug lets the model report what it inferred, but
     it's only trusted when it matches a real slug from this persona's own
-    catalog â€” never an invented one â€” and never overrides a value the
+    catalog — never an invented one — and never overrides a value the
     customer (or a prior turn) already provided.
     """
     if not identified_service_slug or "servico" in extracted_fields:
@@ -518,7 +518,7 @@ def _next_field_question(cart_state: dict[str, Any], context: ConversationContex
     """The question for whatever field is next in missing_fields.
 
     Read from this persona's own graph data (appointment_policy.field_
-    questions), same source _commercial_note_fields uses â€” no hardcoded
+    questions), same source _commercial_note_fields uses — no hardcoded
     field names or questions here, any persona with an appointment_policy.
     """
     if cart_state.get("business_model") != "appointment":
@@ -549,10 +549,10 @@ def _ensure_trailing_question(reply_text: str | None, cart_state: dict[str, Any]
     Confirmed live 2026-08-01: the model's candidate correctly asked the
     graph-defined next question, but got discarded by the unsafe-price
     filter and fell back to the deterministic engine's plain price-fact
-    reply â€” which never asks anything, silently dropping the qualification
+    reply — which never asks anything, silently dropping the qualification
     flow. Whatever reply text ends up used (agentic or deterministic
     fallback), if it doesn't already end in a question and fields are
-    still missing, this appends the graph's own next question for it â€”
+    still missing, this appends the graph's own next question for it —
     a structural guarantee, not just a prompt instruction the model (or a
     safety fallback) can skip.
     """
@@ -810,7 +810,7 @@ def build_context(
     ledger = graph_conversation_contract.ledger_from_state(cart, contract)
     unresolved_fields = graph_conversation_contract.missing_fields(ledger, contract)
     # Golden Dataset RAG (knowledge_rag_entries/knowledge_rag_chunks,
-    # persona-scoped, approved/validated only) â€” a real retrieval layer
+    # persona-scoped, approved/validated only) — a real retrieval layer
     # distinct from rag_nodes' in-memory graph-node keyword filter above.
     # Built for the n8n agentic flow (deterministic ignores this field and
     # keeps using rag_nodes/rag_paths unchanged).
@@ -825,12 +825,12 @@ def build_context(
             unresolved_fields=unresolved_fields,
             graph_version=version,
         )
-    except Exception as exc:  # noqa: BLE001 â€” RAG is best-effort context, never fatal
+    except Exception as exc:  # noqa: BLE001 — RAG is best-effort context, never fatal
         logger.warning("search_active_rag_chunks failed: %s", exc)
         rag_chunks = []
     try:
         system_prompt = build_system_prompt(graph)
-    except Exception as exc:  # noqa: BLE001 â€” the deterministic path never needs this
+    except Exception as exc:  # noqa: BLE001 — the deterministic path never needs this
         logger.warning("build_system_prompt failed: %s", exc)
         system_prompt = ""
     available_services = [
@@ -1683,7 +1683,7 @@ def _decide_dispatch(
         handoff_reason = "graph_version_changed"
         state["conversation_state"] = "handoff"
         result = {
-            "reply": "Vou encaminhar para o atendimento revisar sua solicitaÃ§Ã£o com as informaÃ§Ãµes mais atuais.",
+            "reply": "Vou encaminhar para o atendimento revisar sua solicitação com as informações mais atuais.",
             "state": state,
             "handoff": True,
         }
@@ -1726,7 +1726,7 @@ def _decide_dispatch(
                 handoff_reason = "missing_approved_evidence"
                 state["conversation_state"] = "handoff"
                 result["reply"] = (
-                    "NÃ£o encontrei evidÃªncia aprovada para responder. "
+                    "Não encontrei evidência aprovada para responder. "
                     "Vou encaminhar ao atendimento humano."
                 )
                 result["handoff"] = True
@@ -1807,7 +1807,7 @@ _UNSAFE_SCHEDULE_TOKEN = re.compile(
 
 def _reply_confirms_price_or_schedule(text: str | None) -> bool:
     """A reply must never both use confirmation language and state a price
-    or a date/time in the same breath â€” only a human may finalize those.
+    or a date/time in the same breath — only a human may finalize those.
 
     Informational replies (FAQ prices, durations) are unaffected because they
     never pair a confirmation verb with the figure; this only catches a
@@ -1829,8 +1829,8 @@ def _reply_states_a_price(
     """A price statement by a persona that reserves prices for a human.
 
     Unlike _reply_confirms_price_or_schedule (which only catches a reply that
-    *confirms* something), this fires on any monetary figure â€” value, range,
-    approximation, installment â€” but only for a persona whose published graph
+    *confirms* something), this fires on any monetary figure — value, range,
+    approximation, installment — but only for a persona whose published graph
     says ``appointment_policy.price_disclosure == "human_only"``. Personas
     without that declaration are untouched.
 
@@ -1848,7 +1848,7 @@ def _reply_states_a_price(
 def _context_appointment_policy(context: ConversationContext) -> dict[str, Any]:
     """Published appointment_policy, read from the turn's own rag_nodes.
 
-    commit() never holds the full GraphJson â€” only the flattened node dicts â€”
+    commit() never holds the full GraphJson — only the flattened node dicts —
     so this mirrors _commercial_note_fields() instead of _appointment_policy().
     """
     persona_node = next(
@@ -2108,7 +2108,7 @@ def commit(
     ):
         texts = appointment_policy.get("texts") or {}
         safe_text = str(texts.get("preco_humano") or "").strip() or (
-            "O valor Ã© definido por uma pessoa da equipe. Vou encaminhar sua "
+            "O valor é definido por uma pessoa da equipe. Vou encaminhar sua "
             "conversa para o atendimento."
         )
         decision = decision.model_copy(
@@ -2364,10 +2364,10 @@ def commit(
         metadata["vitoria_state"] = response.cart_state
     if context.runtime_version == graph_agent_runtime_v3.RUNTIME_VERSION:
         # v3's own fact ledger (branch-scoped, revisioned) is the only
-        # source of truth here â€” no separate, hand-typed field list.
+        # source of truth here — no separate, hand-typed field list.
         # Confirmed live 2026-08-06: `commercial_note_fields` (a list
         # authored once on the persona node) had drifted from the real
-        # per-branch field declarations â€” it named fields never actually
+        # per-branch field declarations — it named fields never actually
         # collected and omitted others that were. Mirroring every known
         # fact that belongs to the active branch, straight from `facts`,
         # means there is nothing left to keep in sync by hand. Facts are
@@ -2393,8 +2393,8 @@ def commit(
         active_branch = response.cart_state.get("active_branch_node_id")
         valid_owners = {active_branch} if active_branch else set()
         if active_branch:
-            publication = supabase_client.get_active_graph_publication(
-                str(persona.get("id") or "")
+            publication = supabase_client.get_graph_publication_by_id(
+                str(context.publication_id or "")
             ) or {}
             v3_document = publication.get("document_json") or {}
             contract = (v3_document.get("branch_contracts") or {}).get(active_branch) or {}
@@ -2417,7 +2417,7 @@ def commit(
     else:
         # No hardcoded field names or business_model gate: each persona
         # declares its own commercial_note_fields in its graph's persona
-        # node data (any business model â€” appointment or otherwise).
+        # node data (any business model — appointment or otherwise).
         note_fields = _commercial_note_fields(context)
         appointment_request = dict(
             response.cart_state.get("appointment_request") or {}
@@ -2618,7 +2618,7 @@ def commit(
             prepared_outbound = None
     elif response.reply_text:
         # message_id ("ai:<inbound correlation_id>") is unique to this
-        # outbound leg â€” reusing the inbound correlation_id here made the
+        # outbound leg — reusing the inbound correlation_id here made the
         # outbound message row share it with the inbound row that triggered
         # it, so complete_whatsapp_outbound_result's `WHERE correlation_id =
         # ...` (scoped only by binding, not direction) matched both rows and
@@ -2656,7 +2656,9 @@ def commit(
         active_branch = response.cart_state.get("active_branch_node_id")
         branch_contract: dict[str, Any] = {}
         if response.handoff_required and handoff_level == "full" and active_branch:
-            publication = supabase_client.get_active_graph_publication(str(persona.get("id") or "")) or {}
+            publication = supabase_client.get_graph_publication_by_id(
+                str(context.publication_id or "")
+            ) or {}
             branch_contract = ((publication.get("document_json") or {}).get("branch_contracts") or {}).get(active_branch) or {}
         reset_facts = _handoff_branch_reset_facts(
             handoff_required=response.handoff_required,
@@ -2927,4 +2929,3 @@ def execute_pipeline(
             "graph_checksum": context.graph_checksum,
         },
     }
-

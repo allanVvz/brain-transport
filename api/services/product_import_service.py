@@ -1,9 +1,9 @@
-﻿"""Multi-provider product import for the /marketing/produtos tab.
+"""Multi-provider product import for the /marketing/produtos tab.
 
 Normalizes products coming from Meta (WhatsApp Business catalog), CSV/Excel,
 Shopify (via the existing crawler) and a mocked scraper into the internal
 model: every product becomes a `knowledge_node` (node_type=product) with
-status='pending' (staging via status â€” no new table, per CLAUDE.md Â§2).
+status='pending' (staging via status — no new table, per CLAUDE.md §2).
 
 Rules enforced here:
 - Dedup by `source + external_id + catalog_id` (stored as
@@ -181,7 +181,7 @@ def _parse_csv(file_bytes: bytes) -> list[dict]:
 
 
 def _normalize_url(url: str) -> str:
-    """Tolerate operator input without a scheme (e.g. 'vzlupas.com') â€” the
+    """Tolerate operator input without a scheme (e.g. 'vzlupas.com') — the
     crawler requires http/https + netloc."""
     from urllib.parse import urlparse
 
@@ -316,7 +316,7 @@ def _download_image(
 
     Returns metadata to merge into the asset node. On any failure (offline,
     storage down, bad URL) returns {downloaded: False, download_error: ...} so
-    the import never breaks â€” the asset keeps the source URL reference."""
+    the import never breaks — the asset keeps the source URL reference."""
     try:
         if downloader is not None:
             data, content_type = downloader(image_url)
@@ -356,8 +356,8 @@ def _find_existing_by_dedupe(persona_id: str, key: str) -> Optional[dict]:
 
 
 def _ensure_group_node(persona_id: str, group_title: str) -> Optional[dict]:
-    """Group is materialized as a canonical `product_group` node â€” this is what
-    the cardÃ¡pio menu endpoint (/api/menu/{slug}) reads as a category, and the
+    """Group is materialized as a canonical `product_group` node — this is what
+    the cardápio menu endpoint (/api/menu/{slug}) reads as a category, and the
     dashboard Kanban groups by metadata.product_group. Products bind to it via
     `metadata.category_slug == group.slug` and a `product_group_has_product`
     edge, so the imported catalog renders grouped on the persona's menu."""
@@ -394,7 +394,7 @@ def _materialize_product(
         "import_dedupe_key": norm["dedupe_key"],
         "raw_payload": norm.get("raw_payload"),
         "product_group": norm.get("product_group"),
-        # The cardÃ¡pio menu binds a product to its group by category_slug /
+        # The cardápio menu binds a product to its group by category_slug /
         # product_group_slug; keep collection_slug too for the dashboard filter.
         "collection_slug": group_slug,
         "category_slug": group_slug or (_slugify(norm["category"]) if norm.get("category") else None),
@@ -407,7 +407,7 @@ def _materialize_product(
         metadata["price"] = {"unit": {"amount": offer_prices[0], "currency": norm.get("currency") or "BRL"}}
         cents = [c for c in (_price_cents(p) for p in offer_prices) if c > 0]
         if cents:
-            # Denormalized lowest price so the cardÃ¡pio keeps showing a price.
+            # Denormalized lowest price so the cardápio keeps showing a price.
             metadata["price_cents"] = min(cents)
     metadata = {k: v for k, v in metadata.items() if v is not None}
 
@@ -515,7 +515,7 @@ def _materialize_product(
         created_nodes["copy"] = copy_node.get("id")
 
         # The question must read like something a customer would actually
-        # type â€” never a meta-question about the data's own review/approval
+        # type — never a meta-question about the data's own review/approval
         # status. Approval is tracked via `status` (pending_validation ->
         # validated) for agents to read structurally; it must never leak
         # into customer-facing copy.
@@ -524,10 +524,10 @@ def _materialize_product(
                 "persona_id": persona_id,
                 "node_type": "faq",
                 "slug": _slugify(f"faq-{slug}-informacoes"),
-                "title": f"O que Ã© {norm['name']}?",
+                "title": f"O que é {norm['name']}?",
                 "summary": copy_summary[:400],
                 "metadata": {
-                    "question": f"O que Ã© {norm['name']}?",
+                    "question": f"O que é {norm['name']}?",
                     "answer": copy_summary[:400],
                     "source": norm["source"],
                     "parent_slug": copy_node.get("slug"),
@@ -550,7 +550,7 @@ def _materialize_product(
 
     # OFFERS: every distinct price becomes its own canonical `offer` node, each
     # with its own FAQ and a separate gallery_asset connection (per spec:
-    # "o preÃ§o SEMPRE vem como offer; cada valor distinto = uma offer diferente;
+    # "o preço SEMPRE vem como offer; cada valor distinto = uma offer diferente;
     # gera um faq diferente; conectado separadamente em gallery").
     offer_count = 0
     if offer_prices:
@@ -684,4 +684,3 @@ def import_products(
         "elapsed_ms": int((time.monotonic() - started) * 1000),
         "staging": staging,
     }
-

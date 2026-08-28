@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import hmac
@@ -163,8 +163,8 @@ async def evolution_webhook(binding_id: str, request: Request):
             continue
         if event.get("from_me"):
             # Sent by hand from the linked phone, bypassing the platform.
-            # Record it for history (never re-dispatch â€” it already went
-            # out â€” and never trigger an AI reply to the business's own
+            # Record it for history (never re-dispatch — it already went
+            # out — and never trigger an AI reply to the business's own
             # message).
             external_id = str(event.get("external_message_id") or "")
             if external_id:
@@ -219,7 +219,7 @@ async def evolution_webhook(binding_id: str, request: Request):
         media = event.get("media")
         # A media message is enqueued with a longer hold so the ingest worker
         # has time to download and read the file before the agent answers.
-        # `text` starts as an honest placeholder â€” if the worker never lands,
+        # `text` starts as an honest placeholder — if the worker never lands,
         # the hold expires and the conversation continues with it rather than
         # with an empty string.
         payload_text = event.get("text") or ""
@@ -288,4 +288,3 @@ async def evolution_webhook(binding_id: str, request: Request):
         },
         status_code=202,
     )
-

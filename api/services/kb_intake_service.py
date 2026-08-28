@@ -90,7 +90,6 @@ _BOOTSTRAP_PROMPT = (
 )
 
 _sessions: dict[str, dict] = {}
-_SESSION_DIR = Path(os.environ.get("KB_INTAKE_SESSION_DIR", ".runtime/kb-intake-sessions"))
 _BLOCK_COUNT_KEYS = ("brand", "briefing", "campaign", "audience", "product", "offer", "copy", "faq", "rule", "tone", "asset")
 _OFFER_CONTENT_TYPES = {"offer", "product_variant", "purchase_option"}
 _INVALID_CRIAR_PERSONAS = {"", "all", "todos", "global"}
@@ -4177,11 +4176,6 @@ def _rewrite_visible_plan_summary(message: str, plan_payload: Optional[dict]) ->
     return summary_line
 
 
-def _session_path(session_id: str) -> Path:
-    safe = re.sub(r"[^a-zA-Z0-9_-]", "", session_id)
-    return _SESSION_DIR / f"{safe}.json"
-
-
 def _serialize_session(session: dict) -> dict:
     data = json.loads(json.dumps(session, default=str))
     raw = session.get("classification", {}).get("file_bytes")
@@ -4193,21 +4187,16 @@ def _serialize_session(session: dict) -> dict:
 
 def _save_session(session: dict) -> None:
     try:
-        _SESSION_DIR.mkdir(parents=True, exist_ok=True)
-        _session_path(session["id"]).write_text(
-            json.dumps(_serialize_session(session), ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        supabase_client.upsert_kb_intake_session(_serialize_session(session))
     except Exception:
         pass
 
 
 def _load_session(session_id: str) -> Optional[dict]:
-    path = _session_path(session_id)
-    if not path.exists():
-        return None
     try:
-        session = json.loads(path.read_text(encoding="utf-8"))
+        session = supabase_client.get_kb_intake_session(session_id)
+        if not session:
+            return None
         b64 = session.get("classification", {}).pop("file_bytes_b64", None)
         if b64:
             session["classification"]["file_bytes"] = base64.b64decode(b64)
@@ -4439,19 +4428,13 @@ def _session_matches_resume_candidate(
     return True
 
 
-def _latest_local_resume_session(initial_context: str, agent_key: str) -> Optional[dict]:
+def _latest_persisted_resume_session(initial_context: str, agent_key: str) -> Optional[dict]:
     persona_slug = _context_persona_slug(initial_context)
     objective = _context_objective(initial_context)
     source_url = _source_url_from_context(initial_context)
-    candidates: list[tuple[float, dict]] = []
+    candidates: list[dict] = []
     try:
-        if not _SESSION_DIR.exists():
-            return None
-        for path in _SESSION_DIR.glob("*.json"):
-            try:
-                session = json.loads(path.read_text(encoding="utf-8"))
-            except Exception:
-                continue
+        for session in supabase_client.list_kb_intake_sessions(limit=500):
             if not _session_matches_resume_candidate(
                 session,
                 persona_slug=persona_slug,
@@ -4460,13 +4443,12 @@ def _latest_local_resume_session(initial_context: str, agent_key: str) -> Option
                 source_url=source_url,
             ):
                 continue
-            candidates.append((path.stat().st_mtime, session))
+            candidates.append(session)
     except Exception:
         return None
     if not candidates:
         return None
-    candidates.sort(key=lambda item: item[0], reverse=True)
-    return candidates[0][1]
+    return candidates[0]
 
 
 def _resume_summary_from_payload(payload: dict[str, Any]) -> str:
@@ -4510,7 +4492,7 @@ def _latest_persisted_resume(initial_context: str, agent_key: str) -> Optional[d
 
 
 def _build_resume_metadata(initial_context: str, agent_key: str) -> dict[str, Any]:
-    local_session = _latest_local_resume_session(initial_context, agent_key)
+    local_session = _latest_persisted_resume_session(initial_context, agent_key)
     if local_session:
         payload = _build_event_payload(local_session, status=str(local_session.get("stage") or "chatting"))
         return {
@@ -7382,4 +7364,3 @@ def save(session_id: str, content_text: str = "", plan_override: Optional[dict] 
             "error": None,
         },
     }
-

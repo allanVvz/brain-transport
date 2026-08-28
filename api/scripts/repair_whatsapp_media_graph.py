@@ -1,4 +1,4 @@
-﻿"""Inventory or idempotently repair ready inbound media missing graph links.
+"""Inventory or idempotently repair ready inbound media missing graph links.
 
 Dry-run is the default. Applying repairs is a separate, explicit operation and
 does not delete assets, messages, nodes, edges, storage objects, or RAG data.
@@ -115,4 +115,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -1,8 +1,8 @@
-﻿"""Regression test for the 2026-08-01 Baita lead-duplication bug.
+"""Regression test for the 2026-08-01 Baita lead-duplication bug.
 
 ensure_channel_lead() only looked up leads by external_contact_id, so any
 lead created through a path that only set `telefone` (e.g. the legacy
-/process route) was invisible to every webhook-driven inbound message â€”
+/process route) was invisible to every webhook-driven inbound message —
 guaranteeing a permanent duplicate lead for that contact. Confirmed live
 on a real Baita customer ("Allan"): two leads, messages split across them.
 """
@@ -128,7 +128,7 @@ def test_finds_lead_by_telefone_when_external_contact_id_never_matched(monkeypat
     assert lead["id"] == 5
     assert lead["external_contact_id"] == "555182608510"
     assert lead["channel_binding_id"] == "binding-1"
-    # Backfilled in place â€” no duplicate row created.
+    # Backfilled in place — no duplicate row created.
     assert len(rows) == 1
     assert rows[0]["external_contact_id"] == "555182608510"
 
@@ -165,4 +165,3 @@ def test_does_not_match_a_telefone_lead_belonging_to_a_different_persona(monkeyp
 
     assert lead["id"] != 5
     assert len(rows) == 2
-

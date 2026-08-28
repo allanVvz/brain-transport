@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 import gspread
 from google.oauth2.service_account import Credentials
@@ -105,4 +105,3 @@ def search_kb_text(query: str, persona_id: Optional[str] = None, top_k: int = 5)
 
     scored.sort(reverse=True)
     return [c for _, c in scored[:top_k]]
-

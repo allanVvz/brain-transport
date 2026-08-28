@@ -1,4 +1,4 @@
-﻿"""Agent-neutral projection of existing conversation storage.
+"""Agent-neutral projection of existing conversation storage.
 
 This module deliberately owns no persistence.  It projects journeys, ledgers,
 facts, proofs, outcomes and messages returned by graph_turn_context_batch_v4.
@@ -183,4 +183,3 @@ def facts_by_key(memory: SharedLeadMemory) -> dict[str, list[dict[str, Any]]]:
             "journey_id": fact.journey_id,
         })
     return grouped
-

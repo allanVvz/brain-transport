@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from typing import Callable, Any
 
 _queue: asyncio.Queue = asyncio.Queue()
@@ -17,4 +17,3 @@ async def start_worker(handler: Callable) -> None:
             print(f"[queue] error: {e}")
         finally:
             _queue.task_done()
-

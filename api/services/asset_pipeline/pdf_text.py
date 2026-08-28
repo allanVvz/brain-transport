@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """PDF text extraction via pypdf."""
 from __future__ import annotations
 
@@ -30,4 +30,3 @@ def run(file_bytes: bytes) -> PdfTextResult:
     except Exception as exc:
         logger.warning("pypdf failed: %s", exc)
         return PdfTextResult(page_count=0, extracted_text="", error=str(exc))
-

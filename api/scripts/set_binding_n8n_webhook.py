@@ -1,4 +1,4 @@
-﻿"""Point an existing binding's (meta_cloud or evolution_baileys) n8n_agents
+"""Point an existing binding's (meta_cloud or evolution_baileys) n8n_agents
 routing at a specific webhook/workflow, without touching
 credential/provider/phone or instance identity.
 
@@ -133,4 +133,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

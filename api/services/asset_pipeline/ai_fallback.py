@@ -1,5 +1,5 @@
-﻿# -*- coding: utf-8 -*-
-"""AI vision fallback â€” runs only when local OCR is empty/low-confidence."""
+# -*- coding: utf-8 -*-
+"""AI vision fallback — runs only when local OCR is empty/low-confidence."""
 from __future__ import annotations
 
 import logging
@@ -47,4 +47,3 @@ def run(file_bytes: bytes, mime: Optional[str], prior_text: str = "", openai_api
         visual_summary=(out.get("visual_summary") or "").strip(),
         model_used=str(out.get("model_used") or ""),
     )
-

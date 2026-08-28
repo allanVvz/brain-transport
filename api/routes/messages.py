@@ -1,21 +1,23 @@
-﻿import base64
+import base64
 import json
 import logging
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Header, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from services import (
-    agents_service,
     auth_service,
     event_emitter,
     lead_qualification,
+    internal_auth,
+    operator_messaging,
     supabase_client,
     whatsapp_outbox,
 )
 
 router = APIRouter(prefix="/messages", tags=["messages"])
+internal_router = APIRouter(prefix="/internal/v1/transport/messages", tags=["messages"])
 logger = logging.getLogger("messages")
 
 
@@ -28,6 +30,16 @@ class SendMessageBody(BaseModel):
     nome: str | None = None
 
 
+class InternalPortalMessageBody(BaseModel):
+    persona_id: str
+    lead_ref: int
+    client_message_id: UUID
+    text: str = ""
+    media_base64: str | None = None
+    media_mime: str | None = None
+    media_filename: str | None = None
+
+
 def _decode_message_cursor(value: str | None) -> tuple[str | None, int | None]:
     if not value:
         return None, None
@@ -36,7 +48,7 @@ def _decode_message_cursor(value: str | None) -> tuple[str | None, int | None]:
         payload = json.loads(base64.urlsafe_b64decode(value + padding).decode("utf-8"))
         return str(payload["created_at"]), int(payload["id"])
     except Exception as exc:
-        raise HTTPException(400, detail="Cursor de mensagens invÃ¡lido.") from exc
+        raise HTTPException(400, detail="Cursor de mensagens inválido.") from exc
 
 
 def _encode_message_cursor(row: dict | None) -> str | None:
@@ -93,15 +105,7 @@ def send_message(body: SendMessageBody, request: Request) -> dict:
 
     agent: dict | None = None
     if body.agent_id:
-        agent = agents_service.get_agent(body.agent_id)
-        if not agent or agent.get("persona_id") != persona_id:
-            raise HTTPException(403, detail="Agente nao pertence a persona do lead.")
-    else:
-        stage = lead.get("stage") or lead.get("funnel_stage") or "novo"
-        try:
-            agent, _role = agents_service.resolve_for_stage(persona_id, stage)
-        except Exception as exc:
-            logger.warning("resolve_for_stage failed in send: %s", exc)
+        agent = operator_messaging.agent_metadata(body.agent_id, persona_id)
 
     client_message_id = str(body.client_message_id)
     message_id = f"manual:{client_message_id}"
@@ -114,7 +118,7 @@ def send_message(body: SendMessageBody, request: Request) -> dict:
             correlation_id=message_id,
             idempotency_key=message_id,
             metadata={
-                "agent_id": agent.get("id") if agent else None,
+                "agent_id": agent.get("agent_id") if agent else None,
                 "bot_name": agent.get("bot_name") if agent else None,
                 "sender_id": body.sender_id,
                 "nome": body.nome or body.sender_id or "Operador",
@@ -147,6 +151,36 @@ def send_message(body: SendMessageBody, request: Request) -> dict:
         "buffer_id": result["buffer_id"],
         "deduplicated": bool(result.get("deduplicated")),
     }
+
+
+@internal_router.post("/send")
+def send_portal_message_internal(
+    body: InternalPortalMessageBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+    x_brain_actor_id: str | None = Header(None, alias="X-Brain-Actor-Id"),
+) -> dict:
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    media = None
+    if body.media_base64:
+        try:
+            data = base64.b64decode(body.media_base64, validate=True)
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(422, "Midia base64 invalida") from exc
+        if len(data) > 25 * 1024 * 1024:
+            raise HTTPException(413, "Arquivo excede 25 MiB")
+        media = {
+            "data": data,
+            "mime": body.media_mime or "application/octet-stream",
+            "filename": body.media_filename or "arquivo",
+        }
+    return operator_messaging.enqueue(
+        lead_ref=body.lead_ref,
+        persona_id=body.persona_id,
+        client_message_id=str(body.client_message_id),
+        text=body.text,
+        media=media,
+        metadata={"actor_user_id": x_brain_actor_id},
+    )
 
 
 def _resolve_scope_lead_refs(
@@ -391,4 +425,3 @@ def recent_messages(
         )
     rows.sort(key=lambda item: item.get("created_at") or "", reverse=True)
     return rows[:500]
-

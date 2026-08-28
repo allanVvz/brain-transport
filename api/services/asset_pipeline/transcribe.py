@@ -1,11 +1,11 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Speech-to-text for WhatsApp voice notes, via faster-whisper.
 
 Runs locally inside the API container on purpose: a customer's voice note is
 personal data, and a local model keeps it from leaving the VPS while also
 removing any per-minute cost.
 
-The model is loaded once per process and cached â€” construction is the
+The model is loaded once per process and cached — construction is the
 expensive part (weights load + warm-up), transcription itself is cheap by
 comparison. `small` with int8 quantization runs near real time on CPU, which
 is what `media_ingest.MEDIA_HOLD_SECONDS` is sized against.
@@ -109,7 +109,7 @@ def run(file_bytes: bytes, *, suffix: str = ".ogg", language: Optional[str] = "p
         segments, info = model.transcribe(
             tmp_path,
             language=language,
-            vad_filter=True,          # drop silence â€” voice notes start/end with it
+            vad_filter=True,          # drop silence — voice notes start/end with it
             beam_size=1,              # greedy: the quality gain from beams is not
                                       # worth the latency inside a dispatch hold
         )
@@ -139,4 +139,3 @@ def run(file_bytes: bytes, *, suffix: str = ".ogg", language: Optional[str] = "p
                 os.unlink(tmp_path)
             except OSError:
                 pass
-

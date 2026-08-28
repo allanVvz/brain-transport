@@ -1,4 +1,4 @@
-﻿import os
+import os
 from agents.base import BaseAgent
 
 
@@ -8,4 +8,3 @@ class CloserAgent(BaseAgent):
 
     def __init__(self):
         super().__init__(os.environ.get("CLOSER_AGENT_URL", "http://localhost:8002/run"))
-

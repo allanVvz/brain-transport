@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Filename / title renamer.
 
 Heuristic first (no model call). When the heuristic produces less than 3
@@ -37,12 +37,12 @@ _ASSET_FUNCTION_BY_KIND: dict[str, str] = {
 
 def _slugify(value: str, max_len: int = 60) -> str:
     value = (value or "").strip().lower()
-    value = re.sub(r"[Ã¡Ã Ã¢Ã£Ã¤]", "a", value)
-    value = re.sub(r"[Ã©Ã¨ÃªÃ«]", "e", value)
-    value = re.sub(r"[Ã­Ã¬Ã®Ã¯]", "i", value)
-    value = re.sub(r"[Ã³Ã²Ã´ÃµÃ¶]", "o", value)
-    value = re.sub(r"[ÃºÃ¹Ã»Ã¼]", "u", value)
-    value = re.sub(r"[Ã§]", "c", value)
+    value = re.sub(r"[áàâãä]", "a", value)
+    value = re.sub(r"[éèêë]", "e", value)
+    value = re.sub(r"[íìîï]", "i", value)
+    value = re.sub(r"[óòôõö]", "o", value)
+    value = re.sub(r"[úùûü]", "u", value)
+    value = re.sub(r"[ç]", "c", value)
     value = re.sub(r"[^a-z0-9]+", "-", value)
     value = re.sub(r"-+", "-", value).strip("-")
     if len(value) > max_len:
@@ -53,7 +53,7 @@ def _slugify(value: str, max_len: int = 60) -> str:
 def _significant_tokens(*parts: str) -> list[str]:
     tokens: list[str] = []
     for part in parts:
-        for tok in re.split(r"[^A-Za-zÃ€-Ã–Ã˜-Ã¶Ã¸-Ã¿0-9]+", part or ""):
+        for tok in re.split(r"[^A-Za-zÀ-ÖØ-öø-ÿ0-9]+", part or ""):
             t = tok.strip().lower()
             if not t or t in _STOPWORDS or len(t) < 3:
                 continue
@@ -181,4 +181,3 @@ def run(
         return initial
 
     return _model_refine(initial, persona_slug, branch_label, extracted_text, visual_summary, openai_api_key=openai_api_key)
-

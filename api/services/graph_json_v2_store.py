@@ -1,4 +1,4 @@
-﻿"""Persistent Graph JSON v2 version store backed by ``system_events``.
+"""Persistent Graph JSON v2 version store backed by ``system_events``.
 
 Graph JSON v2 is the canonical document consumed by the Graph UI.  Production
 containers are disposable, so filesystem versions cannot be the source of
@@ -292,4 +292,3 @@ def save_version(
 def storage_root() -> Path:
     """Return the legacy file location for explicit migration tooling only."""
     return _LEGACY_DATA_ROOT
-

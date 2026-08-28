@@ -1,4 +1,4 @@
-﻿"""Pure GraphBundle compilation and publication planning.
+"""Pure GraphBundle compilation and publication planning.
 
 The bundle is an authoring contract.  This module deliberately performs no
 database writes, embedding calls or publication activation.  It adapts a
@@ -628,4 +628,3 @@ def build_publication_plan(
         "compiler_version": candidate["compiler_version"],
         "candidate_document": candidate,
     }
-

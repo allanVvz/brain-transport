@@ -1,4 +1,4 @@
-﻿"""Build and publish canonical Graph JSON v2 documents from derived graph rows.
+"""Build and publish canonical Graph JSON v2 documents from derived graph rows.
 
 This is an explicit migration/backfill path.  The dashboard never falls back
 to ``knowledge_nodes``/``knowledge_edges`` at read time; instead, legacy rows
@@ -53,7 +53,7 @@ _SYNTHETIC_LABELS = {
     "brand": "Marca",
     "briefing": "Briefing principal",
     "campaign": "Campanha principal",
-    "audience": "PÃºblico principal",
+    "audience": "Público principal",
     "product_group": "Produtos",
     "gallery": "Galeria",
 }
@@ -425,4 +425,3 @@ def publish_backfill(
         "checksum": checksum,
         "materialization": materialized,
     }
-

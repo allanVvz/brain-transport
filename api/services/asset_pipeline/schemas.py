@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Dataclasses + enums for the asset reading pipeline."""
 from __future__ import annotations
 
@@ -138,4 +138,3 @@ class AssetReadingBundle:
                 "suggested_parent_slug": self.rename.suggested_parent_slug,
             },
         }
-

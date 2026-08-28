@@ -1,4 +1,4 @@
-﻿"""Evaluate the active GraphRAG publication through the production SQL RPC.
+"""Evaluate the active GraphRAG publication through the production SQL RPC.
 
 The dataset contains only published node identifiers and expected structural
 outcomes. It is deliberately independent from customer copy and field names in
@@ -189,4 +189,3 @@ if __name__ == "__main__":
         args.output.write_text(encoded + "\n", encoding="utf-8")
     print(encoded)
     raise SystemExit(0 if report["passed"] else 1)
-

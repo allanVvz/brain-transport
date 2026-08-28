@@ -1,4 +1,4 @@
-﻿"""Campaign delivery domain service.
+"""Campaign delivery domain service.
 
 The service deliberately separates policy resolution, consent resolution and
 recipient eligibility. `send_campaign` (delivery two) re-runs the same
@@ -95,7 +95,7 @@ def evolution_provider_ready(binding: dict[str, Any] | None) -> bool:
 
 def resolve_provider_ready(binding: dict[str, Any] | None, provider: str) -> bool:
     """Dispatches readiness by provider so Evolution is a normal, first-class
-    option once its binding is connected â€” not a separate/limited mode."""
+    option once its binding is connected — not a separate/limited mode."""
     if provider == "meta_cloud":
         return meta_provider_ready(binding)
     if provider == "evolution_baileys":
@@ -414,7 +414,7 @@ def resolve_send_payload(
     Meta: plain text is only ever allowed when explicitly flagged as a
     controlled test AND there's evidence of an active conversation window for
     this specific lead; otherwise an approved template is mandatory.
-    Evolution has no Meta-style approval/window constraint â€” it sends the
+    Evolution has no Meta-style approval/window constraint — it sends the
     template's rendered body (if attached) or the frozen reference message.
     """
     if provider != "meta_cloud":
@@ -1083,4 +1083,3 @@ def send_campaign(
     )
 
     return get_campaign_detail(campaign_id)
-

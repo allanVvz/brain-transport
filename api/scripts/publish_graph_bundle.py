@@ -1,4 +1,4 @@
-﻿"""Stage and optionally activate one approved GraphBundle in production."""
+"""Stage and optionally activate one approved GraphBundle in production."""
 from __future__ import annotations
 
 import argparse
@@ -61,4 +61,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -1,10 +1,10 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Agents (per-persona bots) and role assignments (sdr / closer / followup).
 
 Schema lives in supabase/migrations/007_agents_routing.sql:
   - agents (one row per bot, scoped per persona)
-  - persona_role_assignments (which agent â€” or NULL=human â€” handles each role)
+  - persona_role_assignments (which agent — or NULL=human — handles each role)
 
 This module is the single source of truth for resolving "who handles this
 lead now?". /process calls resolve_for_stage(persona_id, funnel_stage) and
@@ -24,9 +24,9 @@ logger = logging.getLogger("agents_service")
 VALID_ROLES = ("sdr", "closer", "followup")
 _ROLE_ASSIGNMENTS_TABLE_MISSING = False
 
-# Funnel stage â†’ role.
-# Conservative defaults: most stages map to SDR; fechamento/oportunidade â†’
-# closer; pos_venda / follow_up â†’ followup.
+# Funnel stage → role.
+# Conservative defaults: most stages map to SDR; fechamento/oportunidade →
+# closer; pos_venda / follow_up → followup.
 _STAGE_TO_ROLE = {
     "novo":          "sdr",
     "contato":       "sdr",
@@ -47,7 +47,7 @@ def role_for_stage(funnel_stage: Optional[str]) -> str:
     return _STAGE_TO_ROLE.get((funnel_stage or "").lower(), "sdr")
 
 
-# â”€â”€ agents CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── agents CRUD ──────────────────────────────────────────────────
 
 def list_agents(persona_id: Optional[str] = None, include_inactive: bool = False) -> list:
     client = supabase_client.get_client()
@@ -92,7 +92,7 @@ def deactivate_agent(agent_id: str) -> bool:
     return update_agent(agent_id, {"active": False}) is not None
 
 
-# â”€â”€ role assignments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── role assignments ─────────────────────────────────────────────
 
 def get_role_assignments(persona_id: str) -> dict:
     """Return {role: agent_id_or_None}. Always includes all VALID_ROLES."""
@@ -155,7 +155,7 @@ def _is_missing_role_assignments_table(exc: Exception) -> bool:
     )
 
 
-# â”€â”€ runtime resolver â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── runtime resolver ─────────────────────────────────────────────
 
 def resolve_for_stage(
     persona_slug_or_id: str, funnel_stage: str
@@ -168,8 +168,8 @@ def resolve_for_stage(
 
     Returns:
         (agent_record_or_None, role)
-        - agent_record None  â†’  human handles this role for this persona.
-        - empty role assignment row missing  â†’  also returns None (human).
+        - agent_record None  →  human handles this role for this persona.
+        - empty role assignment row missing  →  also returns None (human).
     """
     role = role_for_stage(funnel_stage)
     persona_id = _resolve_persona_id(persona_slug_or_id)
@@ -186,14 +186,14 @@ def resolve_for_stage(
 def _resolve_persona_id(persona_slug_or_id: str) -> Optional[str]:
     if not persona_slug_or_id:
         return None
-    # Looks like UUID (36 chars with dashes) â€” pass through.
+    # Looks like UUID (36 chars with dashes) — pass through.
     if len(persona_slug_or_id) == 36 and persona_slug_or_id.count("-") == 4:
         return persona_slug_or_id
     persona = supabase_client.get_persona(persona_slug_or_id)
     return persona.get("id") if persona else None
 
 
-# â”€â”€ lead pause/resume â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── lead pause/resume ────────────────────────────────────────────
 
 def pause_lead(lead_ref: int) -> bool:
     try:
@@ -209,7 +209,7 @@ def acknowledge_partial_handoff(lead_ref: int) -> bool:
 
     Unlike resume_lead, a partial handoff never stopped the AI or parked
     lead_buffer rows as waiting_human, so there's nothing to reset or
-    requeue here â€” just clear the flag.
+    requeue here — just clear the flag.
     """
     try:
         supabase_client.update_lead(lead_ref, {"handoff_level": "none"})
@@ -224,15 +224,15 @@ def _cleared_conversation_state_metadata(lead: dict) -> Optional[dict]:
 
     conversation_runtime persists the deterministic engines' working state
     under metadata.conversation_state (or metadata.vitoria_state for legacy
-    Baita leads â€” same fallback conversation_runtime._build_context uses).
+    Baita leads — same fallback conversation_runtime._build_context uses).
     Both DeterministicAppointment and DeterministicSDR short-circuit with an
     empty reply the moment that state's own "conversation_state" field is
     "handoff", regardless of handoff_level. Left untouched, resuming a lead
     just makes it silently re-pause on the next inbound message instead of
     trying to answer. Only the sticky flag and the stale clarification
-    counter are reset here â€” collected fields (appointment_request, items,
+    counter are reset here — collected fields (appointment_request, items,
     etc.) must survive the resume. This is the legacy engines' format only
-    â€” v3's equivalent sticky state lives in conversation_ledgers and is
+    — v3's equivalent sticky state lives in conversation_ledgers and is
     handled separately by _reset_v3_ledger_if_applicable.
     """
     metadata = dict(lead.get("metadata") or {})
@@ -409,7 +409,7 @@ def _reactivation_policy(lead: dict) -> dict:
 
 
 def reactivation_notice(lead_ref: int, *, reason: str) -> dict:
-    """Announce, once, that the AI is back â€” when nothing else will speak.
+    """Announce, once, that the AI is back — when nothing else will speak.
 
     `reason` mirrors the `by` already carried by the `lead.ai_resumed` event
     ("manual", "journey_closed"). Copy is published in the persona graph under
@@ -504,4 +504,3 @@ def _recent_agent_texts(lead: dict) -> list[str]:
         if str(row.get("direction") or "") == "outbound"
         if (text := str(row.get("texto") or row.get("content") or "").strip())
     ]
-

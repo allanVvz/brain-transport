@@ -1,4 +1,4 @@
-﻿"""Adapt a Sofia (kb_intake) normalized knowledge plan into a GraphBundle.
+"""Adapt a Sofia (kb_intake) normalized knowledge plan into a GraphBundle.
 
 Sofia's plan entries and services.graph_bundle's node/edge contract are
 structurally close (same content_type/node_type vocabulary, same
@@ -303,4 +303,3 @@ def ensure_branch_reachability(bundle: dict[str, Any]) -> dict[str, Any]:
     repaired = dict(bundle)
     repaired["edges"] = edges
     return repaired
-

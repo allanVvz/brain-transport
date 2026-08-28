@@ -1,4 +1,4 @@
-﻿"""Read-only catalog and view projection for GraphBundle v3.
+"""Read-only catalog and view projection for GraphBundle v3.
 
 This module intentionally has no publication, activation, or persistence path.
 It combines the versioned bundles shipped with the repository, Sofia's pending
@@ -7,7 +7,6 @@ bundle drafts, and the already materialized ``graph_publications`` rows.
 from __future__ import annotations
 
 import json
-import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,12 +17,6 @@ from services import graph_bundle, supabase_client
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BUNDLE_ROOT = REPO_ROOT / "data" / "graph_bundles"
-SOFIA_SESSION_ROOT = Path(
-    os.environ.get("KB_INTAKE_SESSION_DIR", ".runtime/kb-intake-sessions")
-)
-if not SOFIA_SESSION_ROOT.is_absolute():
-    SOFIA_SESSION_ROOT = REPO_ROOT / SOFIA_SESSION_ROOT
-
 _SAFE_PERSONA = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$")
 
 
@@ -86,30 +79,16 @@ def _local_drafts(persona_slug: str) -> Iterable[tuple[dict[str, Any], dict[str,
 
 
 def _sofia_drafts(persona_slug: str) -> Iterable[tuple[dict[str, Any], dict[str, Any]]]:
-    if not SOFIA_SESSION_ROOT.is_dir():
-        return
-    # The runtime directory is bounded operational state. Reverse mtime order
-    # and cap the scan so a stale session archive cannot make this endpoint
-    # unbounded.
-    try:
-        paths = sorted(
-            SOFIA_SESSION_ROOT.glob("*.json"),
-            key=lambda item: item.stat().st_mtime,
-            reverse=True,
-        )[:500]
-    except OSError:
-        return
-    for path in paths:
-        session = _read_json(path)
+    for session in supabase_client.list_kb_intake_sessions(limit=500):
         bundle = (session or {}).get("pending_graph_bundle")
         if not isinstance(bundle, dict) or _bundle_persona_slug(bundle) != persona_slug:
             continue
-        session_id = str((session or {}).get("id") or path.stem)
+        session_id = str((session or {}).get("id") or "unknown")
         yield bundle, {
             "ref": f"sofia:{session_id}",
             "origin": "sofia_draft",
-            "label": f"Sofia Â· {session_id[:8]}",
-            "updated_at": _iso_mtime(path),
+            "label": f"Sofia · {session_id[:8]}",
+            "updated_at": session.get("_updated_at"),
         }
 
 
@@ -161,7 +140,7 @@ def list_versions(persona_slug: str) -> dict[str, Any]:
             "source": "publication",
             "origin": "graph_publications",
             "state": state,
-            "label": f"PublicaÃ§Ã£o v{row.get('version')} Â· {state}",
+            "label": f"Publicação v{row.get('version')} · {state}",
             "version": row.get("version"),
             "checksum": row.get("checksum"),
             "runtime_checksum": row.get("checksum"),
@@ -277,4 +256,3 @@ def get_view(persona_slug: str, *, source: str, ref: str) -> dict[str, Any]:
         "branch_memberships": _derived_branch_memberships(document),
         "read_only": True,
     }
-

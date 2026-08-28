@@ -1,4 +1,4 @@
-﻿"""MockWhatsAppProvider is exercised for real by Phase 6's E2E stack, but
+"""MockWhatsAppProvider is exercised for real by Phase 6's E2E stack, but
 its own correctness (Protocol compliance, no accidental network calls,
 in-memory bookkeeping) is cheap to pin down here without Docker."""
 import sys
@@ -46,7 +46,7 @@ def test_send_text_records_and_returns_external_id():
 
 def test_send_is_visible_across_separate_instances():
     """registry.get_provider() constructs a new instance per call site
-    (worker vs. test assertion) â€” the log must be shared, not per-instance,
+    (worker vs. test assertion) — the log must be shared, not per-instance,
     or nothing would ever be observable from the test side."""
     get_provider("mock").send_text({"id": "b1"}, "5511888888888", "hello")
     observed = MockWhatsAppProvider().sent
@@ -112,4 +112,3 @@ def test_normalize_webhook_mirrors_evolution_shape():
     assert event["external_contact_id"] == "5511999999999@s.whatsapp.net"
     assert event["text"] == "oi"
     assert event["from_me"] is False
-

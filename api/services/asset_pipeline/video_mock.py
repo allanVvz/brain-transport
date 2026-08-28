@@ -1,5 +1,5 @@
-﻿# -*- coding: utf-8 -*-
-"""Video mock â€” no real video processing. Returns canned reading."""
+# -*- coding: utf-8 -*-
+"""Video mock — no real video processing. Returns canned reading."""
 from __future__ import annotations
 
 
@@ -13,4 +13,3 @@ MOCK_PAYLOAD = {
 
 def run() -> dict:
     return dict(MOCK_PAYLOAD)
-

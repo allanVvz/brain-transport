@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import json
@@ -626,4 +626,3 @@ def capabilities_payload() -> dict[str, Any]:
         "tools": HARNESS_TOOL_REGISTRY.capabilities(),
         "external_adapters": {"mcp": False, "stdio": False, "streaming": "polling"},
     }
-

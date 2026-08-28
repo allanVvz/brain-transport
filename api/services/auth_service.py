@@ -1,4 +1,4 @@
-﻿import base64
+import base64
 import hashlib
 import hmac
 import json
@@ -422,4 +422,3 @@ def change_password(user_id: str, current_password: str, new_password: str) -> N
         .eq("id", user_id),
         operation="update app_users password",
     )
-

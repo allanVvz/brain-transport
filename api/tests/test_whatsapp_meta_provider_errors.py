@@ -1,4 +1,4 @@
-﻿"""Regression coverage for Meta Cloud error-detail capture.
+"""Regression coverage for Meta Cloud error-detail capture.
 
 Before this, a rejected send only ever surfaced the generic httpx status
 line ("Client error '400 Bad Request' for url ...") in logs/dashboard.
@@ -109,4 +109,3 @@ def test_successful_send_is_unaffected(monkeypatch):
     result = provider.send_text(_binding(), "5551992623375", "oi")
 
     assert result["messages"][0]["id"] == "wamid.123"
-

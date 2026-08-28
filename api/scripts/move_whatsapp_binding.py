@@ -1,4 +1,4 @@
-﻿"""Move an active WhatsApp binding (meta_cloud or evolution_baileys) from one
+"""Move an active WhatsApp binding (meta_cloud or evolution_baileys) from one
 persona to another, in place.
 
 This re-parents the existing workflow_bindings row (same id, same encrypted
@@ -242,4 +242,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

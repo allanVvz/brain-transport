@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import Any, Literal
 
@@ -186,4 +186,3 @@ def provider_health(request: Request, persona_id: str = Query(...)):
         "rollout_one_enabled": rollout_enabled,
         "mock": mock_enabled,
     }
-

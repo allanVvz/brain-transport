@@ -1,4 +1,4 @@
-﻿"""Deterministic, document-backed conversational sales engine.
+"""Deterministic, document-backed conversational sales engine.
 
 This module is intentionally independent from a model provider and from the
 database.  Markdown is parsed into a small catalog, while the conversation
@@ -91,12 +91,12 @@ class Catalog:
                     # A multi-word term appearing verbatim is a strong,
                     # specific signal regardless of message length. A
                     # single generic word (e.g. "pintura", the paint
-                    # material â€” also this persona's full-repaint service
+                    # material — also this persona's full-repaint service
                     # name) is only trustworthy at that strength inside a
                     # short, direct message ("quero pintura"); inside a
                     # long descriptive sentence ("minha pintura ta toda
                     # fosca...") it's usually the customer describing
-                    # their car, not naming a service â€” confirmed live
+                    # their car, not naming a service — confirmed live
                     # 2026-08-01, where this false-positive silently
                     # locked in the wrong service before the agentic
                     # engine's own symptom-based inference could run.
@@ -410,7 +410,7 @@ class DeterministicSDR:
             return {"reply": self.catalog.greeting, "intent": "greeting", "state": state, "handoff": False}
         if any(term in normalized for term in ("atendimento humano", "falar com alguem", "falar com uma pessoa", "humano")):
             state["conversation_state"] = "handoff"
-            return {"reply": "Claro. Vou encaminhar vocÃª para o atendimento humano.", "intent": "request_human", "state": state, "handoff": True}
+            return {"reply": "Claro. Vou encaminhar você para o atendimento humano.", "intent": "request_human", "state": state, "handoff": True}
         product = self.catalog.find_product(text)
         category = self.catalog.find_category(text)
         if category and _is_generic_category_query(text, category):
@@ -448,7 +448,7 @@ class DeterministicSDR:
             product = next((p for p in self.catalog.products if p.slug == last_slug), None)
         if state["items"] and normalized in {"quanto fica", "qual o total", "total"}:
             total = sum((i.get("unit_price") or 0) * int(i.get("quantity") or 0) for i in state["items"])
-            return {"reply": f"O total parcial Ã© {_brl(total)}.", "intent": "consult_price", "state": state, "handoff": False}
+            return {"reply": f"O total parcial é {_brl(total)}.", "intent": "consult_price", "state": state, "handoff": False}
         if state.get("conversation_state") == "awaiting_confirmation" and not product and not category:
             if _is_yes(text):
                 state["conversation_state"] = "handoff"
@@ -475,30 +475,30 @@ class DeterministicSDR:
             if _is_no(text):
                 state["conversation_state"] = "building_order"
                 state["confirmation_status"] = "cancelled"
-                return {"reply": "Tudo bem. O que vocÃª deseja corrigir no pedido?", "intent": "deny_order", "state": state, "handoff": False}
+                return {"reply": "Tudo bem. O que você deseja corrigir no pedido?", "intent": "deny_order", "state": state, "handoff": False}
         if state.get("conversation_state") == "awaiting_address" and not product and not category:
             addr = _address(text)
             state["address"] = {**(state.get("address") or {}), **addr}
             if not state["address"].get("street"):
-                return {"reply": "Qual Ã© a rua ou avenida do endereÃ§o?", "intent": "provide_address", "state": state, "handoff": False}
+                return {"reply": "Qual é a rua ou avenida do endereço?", "intent": "provide_address", "state": state, "handoff": False}
             if not state["address"].get("number"):
-                return {"reply": "Qual Ã© o nÃºmero do endereÃ§o?", "intent": "provide_address", "state": state, "handoff": False}
+                return {"reply": "Qual é o número do endereço?", "intent": "provide_address", "state": state, "handoff": False}
             state["conversation_state"] = "awaiting_confirmation"
             total = sum((i.get("unit_price") or 0) * int(i.get("quantity") or 0) for i in state["items"])
             summary = ", ".join(f"{i['quantity']} {next((p.public_name for p in self.catalog.products if p.slug == i['product_slug']), i['product_slug'])}" for i in state["items"])
             return {"reply": f"Pedido: {summary}, total de {_brl(total)}, para {text}. Posso confirmar este pedido?", "intent": "provide_address", "state": state, "handoff": False}
-        if state.get("conversation_state") == "awaiting_name" and re.fullmatch(r"[A-Za-zÃ€-Ã¿]{2,}(?:\s+[A-Za-zÃ€-Ã¿]{2,}){0,2}", text):
+        if state.get("conversation_state") == "awaiting_name" and re.fullmatch(r"[A-Za-zÀ-ÿ]{2,}(?:\s+[A-Za-zÀ-ÿ]{2,}){0,2}", text):
             state["customer_name"] = text
             if state["items"]:
                 state["conversation_state"] = "awaiting_address"
-                return {"reply": f"Obrigada, {text}. Qual endereÃ§o devo usar?", "intent": "provide_name", "state": state, "handoff": False}
+                return {"reply": f"Obrigada, {text}. Qual endereço devo usar?", "intent": "provide_name", "state": state, "handoff": False}
         if product:
             qty = _quantity(text) or 1
             is_price_question = any(word in normalized for word in ("preco", "custa", "valor", "quanto fica"))
             if is_price_question and product.price is not None:
                 return {"reply": f"{product.public_name}: {_brl(product.price)}.", "intent": "consult_price", "state": state, "handoff": False}
             if product.price is None:
-                return {"reply": f"NÃ£o encontrei um preÃ§o aprovado para {product.public_name}. VocÃª quer consultar outro item?", "intent": "consult_price", "state": state, "handoff": False}
+                return {"reply": f"Não encontrei um preço aprovado para {product.public_name}. Você quer consultar outro item?", "intent": "consult_price", "state": state, "handoff": False}
             if any(word in normalized for word in ("remove", "tirar", "excluir")):
                 state["items"] = [i for i in state["items"] if i.get("product_slug") != product.slug]
                 return {"reply": f"Certo, removi {product.public_name} do pedido.", "intent": "remove_item", "state": state, "handoff": False}
@@ -512,7 +512,7 @@ class DeterministicSDR:
             else:
                 intent = "consult_product"
             if len(state["items"]) == 1 and not _quantity(text) and not state.get("customer_name"):
-                return {"reply": f"Sim. {product.public_name}{(' ' + product.unit) if product.unit else ''} â€” {_brl(product.price)}. Quantas unidades vocÃª deseja?", "intent": "consult_product", "state": state, "handoff": False}
+                return {"reply": f"Sim. {product.public_name}{(' ' + product.unit) if product.unit else ''} — {_brl(product.price)}. Quantas unidades você deseja?", "intent": "consult_product", "state": state, "handoff": False}
             total = sum((i.get("unit_price") or 0) * int(i.get("quantity") or 0) for i in state["items"])
             summary = ", ".join(f"{i['quantity']} {next((p.public_name for p in self.catalog.products if p.slug == i['product_slug']), i['product_slug'])}" for i in state["items"])
             address = dict(state.get("address") or {})
@@ -533,15 +533,14 @@ class DeterministicSDR:
                     "handoff": False,
                 }
             state["conversation_state"] = "awaiting_address" if state.get("customer_name") else "awaiting_name"
-            next_question = f"Obrigada, {state['customer_name']}. Qual endereÃ§o devo usar?" if state.get("customer_name") else "Qual Ã© o seu nome?"
+            next_question = f"Obrigada, {state['customer_name']}. Qual endereço devo usar?" if state.get("customer_name") else "Qual é o seu nome?"
             return {"reply": f"Certo: {summary}, total de {_brl(total)}. {next_question}", "intent": intent, "state": state, "handoff": False}
         if category:
             products = self.catalog.in_category(category)
             listed = "\n".join(
-                f"- {p.public_name} â€” {_brl(p.price)}" if p.price is not None else f"- {p.public_name}"
+                f"- {p.public_name} — {_brl(p.price)}" if p.price is not None else f"- {p.public_name}"
                 for p in products
             ) or "- nenhum item aprovado no momento"
-            return {"reply": f"Em {category}, encontrei:\n{listed}\nQual item vocÃª deseja?", "intent": "consult_category", "state": state, "handoff": False}
+            return {"reply": f"Em {category}, encontrei:\n{listed}\nQual item você deseja?", "intent": "consult_category", "state": state, "handoff": False}
         suggestions = ", ".join(sorted(self.catalog.categories)[:3])
-        return {"reply": f"NÃ£o localizei esse item. Posso ajudar com: {suggestions}. VocÃª quer outro produto?", "intent": intent, "state": state, "handoff": False}
-
+        return {"reply": f"Não localizei esse item. Posso ajudar com: {suggestions}. Você quer outro produto?", "intent": intent, "state": state, "handoff": False}

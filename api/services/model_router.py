@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 ModelRouter - provider-agnostic LLM caller with strict provider isolation.
 
@@ -674,4 +674,3 @@ def get_router() -> ModelRouter:
     if _router is None:
         _router = ModelRouter()
     return _router
-

@@ -1,4 +1,4 @@
-﻿"""Deterministic, additive lead qualification shared by sales and appointments."""
+"""Deterministic, additive lead qualification shared by sales and appointments."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -20,14 +20,14 @@ POINTS = {
 LABELS = {
     "first_contact": "Primeiro contato",
     "discovery": "Descoberta ou listagem",
-    "product_or_service": "Produto ou serviÃ§o identificado",
-    "price_query": "Consulta de preÃ§o",
-    "request_started": "Pedido, orÃ§amento ou agendamento iniciado",
+    "product_or_service": "Produto ou serviço identificado",
+    "price_query": "Consulta de preço",
+    "request_started": "Pedido, orçamento ou agendamento iniciado",
     "quantity": "Quantidade informada", "name": "Nome informado",
-    "complete_address": "EndereÃ§o completo", "vehicle_model": "Modelo do veÃ­culo",
-    "vehicle_size": "Porte do veÃ­culo", "vehicle_condition": "CondiÃ§Ã£o do veÃ­culo",
-    "date": "Data solicitada", "time_window": "PerÃ­odo solicitado",
-    "completed_request": "SolicitaÃ§Ã£o completa ou confirmada",
+    "complete_address": "Endereço completo", "vehicle_model": "Modelo do veículo",
+    "vehicle_size": "Porte do veículo", "vehicle_condition": "Condição do veículo",
+    "date": "Data solicitada", "time_window": "Período solicitado",
+    "completed_request": "Solicitação completa ou confirmada",
 }
 
 
@@ -279,4 +279,3 @@ def filter_validation_scope(
         for row in decorated
         if bool(row.get("validation", {}).get("is_validation")) is expected
     ]
-

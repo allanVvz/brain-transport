@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
@@ -152,4 +152,3 @@ class ToolResult(BaseModel):
 
     ok: bool
     summary: str | None = None
-

@@ -1,4 +1,4 @@
-﻿"""Canonical Meta WhatsApp ingress and delivery callbacks.
+"""Canonical Meta WhatsApp ingress and delivery callbacks.
 
 n8n is intentionally only a transport: these routes persist the source event
 before any downstream work and never execute a commercial prompt.
@@ -22,7 +22,7 @@ from services import event_emitter, media_ingest, supabase_client
 from services.whatsapp_providers.meta import MetaWhatsAppProvider
 
 router = APIRouter(prefix="/webhooks/whatsapp", tags=["whatsapp"])
-internal_router = APIRouter(prefix="/internal/whatsapp", tags=["whatsapp"])
+internal_router = APIRouter(prefix="/internal/v1/transport/whatsapp", tags=["whatsapp"])
 logger = logging.getLogger("whatsapp")
 # Evolution's webhook has always had this guard (EVOLUTION_WEBHOOK_MAX_BYTES);
 # Meta's had none at all. Same env var name/default so both providers share
@@ -300,4 +300,3 @@ def outbound_result(body: OutboundResult, x_webhook_token: str | None = Header(N
         "status": result.get("status"),
         "deduplicated": bool(result.get("deduplicated")),
     }
-

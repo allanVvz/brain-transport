@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import httpx
 import logging
 from schemas.context import Context
@@ -37,7 +37,7 @@ class BaseAgent:
                 return result
         except Exception as exc:
             logger.warning(
-                "Agent %s: external service %s unavailable (%s) â€” using inline model router",
+                "Agent %s: external service %s unavailable (%s) — using inline model router",
                 self.name, self.endpoint, exc,
             )
             return await asyncio.to_thread(self._run_inline, ctx)
@@ -54,14 +54,14 @@ class BaseAgent:
             text = (msg.get("texto") or "").strip()
             if text:
                 history_parts.append(f"{role}: {text}")
-        history_text = "\n".join(history_parts) if history_parts else "(sem histÃ³rico)"
+        history_text = "\n".join(history_parts) if history_parts else "(sem histórico)"
 
         prompt = self._build_inline_prompt(ctx, kb_text, history_text)
         try:
             reply = get_router().chat(self.model, prompt, max_tokens=512)
         except Exception as exc:
             logger.error("Agent %s inline fallback failed: %s", self.name, exc)
-            reply = "OlÃ¡! Como posso ajudar vocÃª hoje?"
+            reply = "Olá! Como posso ajudar você hoje?"
         return {
             "reply": reply,
             "agent": self.name,
@@ -70,16 +70,15 @@ class BaseAgent:
         }
 
     def _build_inline_prompt(self, ctx: Context, kb_text: str, history_text: str) -> str:
-        return f"""VocÃª Ã© Sofia, assistente de vendas via WhatsApp. Responda Ã  mensagem do cliente usando a base de conhecimento abaixo.
+        return f"""Você é Sofia, assistente de vendas via WhatsApp. Responda à mensagem do cliente usando a base de conhecimento abaixo.
 
 === BASE DE CONHECIMENTO ===
 {kb_text}
 
-=== HISTÃ“RICO DA CONVERSA ===
+=== HISTÓRICO DA CONVERSA ===
 {history_text}
 
 === MENSAGEM DO CLIENTE ===
 {ctx.mensagem}
 
-Responda de forma direta, amigÃ¡vel e focada em conversÃ£o. MÃ¡ximo 3 parÃ¡grafos curtos."""
-
+Responda de forma direta, amigável e focada em conversão. Máximo 3 parágrafos curtos."""

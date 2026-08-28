@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -16,4 +16,3 @@ class LeadEvent(BaseModel):
     whatsapp_phone_number_id: Optional[str] = None
     persona_slug: str = "global"
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-

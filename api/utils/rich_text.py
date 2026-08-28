@@ -1,8 +1,8 @@
-﻿"""Universal rich-text cleanup for imported copy.
+"""Universal rich-text cleanup for imported copy.
 
 Imported product copy (Shopify, scrapers, CMS pastes) arrives as messy HTML
 (`<p data-pm-slice>`, `<span>`, `<div class>`, `<h2 data-start>`, `<br>`...).
-We never want raw tags to reach a consumer â€” not the cardapio, not agents, not
+We never want raw tags to reach a consumer — not the cardapio, not agents, not
 RAG. `to_clean_markdown` converts the known structural tags into a tiny,
 predictable markdown subset and drops everything else (tags + attributes),
 yielding clean text that renders richly on the front and reads cleanly for
@@ -75,7 +75,7 @@ def to_clean_markdown(raw: object) -> str:
 
 def _finalize(text: str) -> str:
     # Normalize non-breaking / unicode spaces (&nbsp; -> \xa0) to plain spaces.
-    text = text.replace("\xa0", " ").replace("â€‹", "").replace("â€‰", " ")
+    text = text.replace("\xa0", " ").replace("​", "").replace(" ", " ")
     text = _TRAILING_WS_RE.sub("\n", text)
     # Collapse runs of spaces/tabs (entities like &nbsp; become spaces).
     text = re.sub(r"[ \t]{2,}", " ", text)
@@ -86,11 +86,10 @@ def _finalize(text: str) -> str:
 
 
 def strip_to_text(raw: object) -> str:
-    """Plain-text variant (no markdown markers) â€” for places that want bare text."""
+    """Plain-text variant (no markdown markers) — for places that want bare text."""
     md = to_clean_markdown(raw)
     md = re.sub(r"\*\*(.*?)\*\*", r"\1", md)
     md = re.sub(r"\*(.*?)\*", r"\1", md)
     md = re.sub(r"^#{1,6}\s*", "", md, flags=re.MULTILINE)
     md = re.sub(r"^-\s+", "", md, flags=re.MULTILINE)
     return md.strip()
-

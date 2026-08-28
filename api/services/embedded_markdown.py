@@ -1,4 +1,4 @@
-﻿"""Embedded node Markdown body.
+"""Embedded node Markdown body.
 
 The Embedded node is the semantic destination for approved/published FAQs. On
 top of the graph edges, it also keeps a human-readable Markdown body that lists
@@ -59,7 +59,7 @@ def faq_payload_from_node(node: dict) -> dict:
 def build_embedded_markdown(persona_label: str, faqs: list[dict]) -> str:
     """Render the Embedded body listing every connected FAQ (pure)."""
     label = (persona_label or "Persona").strip()
-    lines: list[str] = [f"# Embedded â€” {label}", "", "## FAQs conectadas", ""]
+    lines: list[str] = [f"# Embedded — {label}", "", "## FAQs conectadas", ""]
     if not faqs:
         lines.append("_Nenhuma FAQ conectada ao Embedded._")
         return "\n".join(lines).rstrip() + "\n"
@@ -138,4 +138,3 @@ def rebuild_embedded_markdown(persona_id: Optional[str]) -> Optional[str]:
         return markdown
     except Exception:
         return None
-

@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from fastapi import HTTPException
 
 from services.whatsapp_outbox import _recipient_for_lead
@@ -23,4 +23,3 @@ def test_recipient_rejects_missing_or_invalid_identity(lead):
     with pytest.raises(HTTPException) as exc:
         _recipient_for_lead(lead)
     assert exc.value.status_code == 409
-

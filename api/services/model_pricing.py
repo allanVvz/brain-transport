@@ -1,4 +1,4 @@
-﻿"""Per-model token pricing used to compute cost_usd on observability events.
+"""Per-model token pricing used to compute cost_usd on observability events.
 
 No pricing figures existed anywhere in this repo before this file -- the
 cost investigation that led to this observability work found the codebase
@@ -80,4 +80,3 @@ def estimate_cost_usd(
     if cached and tier.cached_input_per_million is not None:
         cost += (cached / 1_000_000) * tier.cached_input_per_million
     return round(cost, 6)
-

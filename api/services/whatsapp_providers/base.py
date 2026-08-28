@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import Any, Protocol
 
@@ -19,4 +19,3 @@ class WhatsAppProvider(Protocol):
     def restart_instance(self, binding: dict[str, Any]) -> dict[str, Any]: ...
     def logout_instance(self, binding: dict[str, Any]) -> dict[str, Any]: ...
     def normalize_webhook(self, payload: dict[str, Any]) -> list[dict[str, Any]]: ...
-

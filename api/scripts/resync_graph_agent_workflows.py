@@ -1,4 +1,4 @@
-﻿"""Resync personas from the one canonical n8n conversation template.
+"""Resync personas from the one canonical n8n conversation template.
 
 Inactive personas receive the exact same structural workflow but remain
 deactivated. Only slugs passed with ``--active-persona`` may update their
@@ -161,4 +161,3 @@ if __name__ == "__main__":
         run(args.personas, active_personas=set(args.active_persona)),
         ensure_ascii=False, indent=2, default=str,
     ))
-

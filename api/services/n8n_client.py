@@ -1,4 +1,4 @@
-﻿import hashlib
+import hashlib
 import hmac
 import json
 import os
@@ -84,7 +84,7 @@ def get_workflow(workflow_id: str) -> Optional[dict]:
     """Fetch one workflow's definition. Returns None if it no longer exists.
 
     n8n's public API has no read endpoint for credentials themselves (GET by
-    id or list both 405) â€” a node's stored `credentials.<type>.id` can go
+    id or list both 405) — a node's stored `credentials.<type>.id` can go
     stale (object deleted elsewhere in n8n) with nothing here to detect it.
     This only confirms the *workflow* still exists and which credential id
     its node currently references, not that the credential object is real.
@@ -187,4 +187,3 @@ def ping() -> tuple[bool, int]:
             return response.status_code == 200, ms
     except Exception:
         return False, -1
-

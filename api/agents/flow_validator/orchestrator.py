@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 import anthropic
 from datetime import datetime, timezone
@@ -41,7 +41,7 @@ def _deduplicate(new_insights: list[dict], existing_titles: list[str]) -> list[d
 
 
 def run(persona_id: str | None = None) -> dict:
-    print(f"[flow-validator] starting analysis cycle â€” {datetime.now(timezone.utc).isoformat()}")
+    print(f"[flow-validator] starting analysis cycle — {datetime.now(timezone.utc).isoformat()}")
 
     all_insights: list[dict] = []
 
@@ -84,4 +84,3 @@ def run(persona_id: str | None = None) -> dict:
 
     print(f"[flow-validator] done. score={score_data['score_total']} new_insights={len(new_insights)}")
     return score_data
-

@@ -1,4 +1,4 @@
-﻿"""Inbound WhatsApp media: registration, attribution and text descriptors.
+"""Inbound WhatsApp media: registration, attribution and text descriptors.
 
 The design constraint that shapes this whole module: ``payload["text"]`` is the
 *only* channel into both conversation runtimes
@@ -7,12 +7,12 @@ So instead of teaching the runtime, n8n and the proof checker about
 attachments, the extracted text is folded back into ``payload.text`` at ingest
 time. Everything downstream keeps working unchanged.
 
-That trade has one cost â€” reading a file takes seconds, and a webhook must
-answer immediately â€” which is paid with a dispatch hold:
+That trade has one cost — reading a file takes seconds, and a webhook must
+answer immediately — which is paid with a dispatch hold:
 
-    webhook   â†’ asset(status='reading') + buffer(available_at = now + HOLD)
-    worker    â†’ download â†’ read â†’ resolve_media_buffer(text) â†’ available_at = now + 3s
-    (failure) â†’ hold expires, the conversation continues with the placeholder
+    webhook   → asset(status='reading') + buffer(available_at = now + HOLD)
+    worker    → download → read → resolve_media_buffer(text) → available_at = now + 3s
+    (failure) → hold expires, the conversation continues with the placeholder
 
 A failed transcription therefore degrades the answer. It never blocks the
 conversation and never produces an empty user turn.
@@ -33,8 +33,8 @@ logger = logging.getLogger("services.media_ingest")
 MEDIA_HOLD_SECONDS = int(os.environ.get("WHATSAPP_MEDIA_HOLD_SECONDS", "45"))
 
 # Placeholder shown while the file is being read, and kept permanently if the
-# reading fails. Deliberately states only what is certain â€” that something was
-# received â€” instead of inventing content.
+# reading fails. Deliberately states only what is certain — that something was
+# received — instead of inventing content.
 _PLACEHOLDER = {
     "audio": "[o cliente enviou um audio]",
     "image": "[o cliente enviou uma imagem]",
@@ -56,7 +56,7 @@ def describe(descriptor: dict, reading: Optional[dict]) -> tuple[str, str]:
     """Turn a finished reading into ``(text, reading_status)``.
 
     The text is what the operator sees in the thread and what the agent
-    receives as the user's turn, so each kind is labelled explicitly â€” the
+    receives as the user's turn, so each kind is labelled explicitly — the
     agent must never mistake a transcription for something the customer typed.
     """
     descriptor = descriptor or {}
@@ -96,8 +96,8 @@ def describe(descriptor: dict, reading: Optional[dict]) -> tuple[str, str]:
 def resolve_campaign_attribution(persona_id: str, lead_id: int) -> dict[str, Any]:
     """Find the campaign whose outreach opened this conversation.
 
-    ``messages.campaign_id`` cannot carry this for inbound traffic â€” the
-    constraint from migration 087 requires ``direction='outbound'`` â€” so the
+    ``messages.campaign_id`` cannot carry this for inbound traffic — the
+    constraint from migration 087 requires ``direction='outbound'`` — so the
     campaign is resolved through ``campaign_recipients``, which is also where
     the reply-attribution machinery already lives.
 
@@ -185,4 +185,3 @@ def register_inbound_media(
                 message_row_id, asset.get("id"), exc,
             )
     return asset
-

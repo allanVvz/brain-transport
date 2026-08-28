@@ -1,4 +1,4 @@
-﻿"""Shared graph hierarchy rules for BOTH Sofia paths (Create and Graph).
+"""Shared graph hierarchy rules for BOTH Sofia paths (Create and Graph).
 
 Single source of truth for "which parent a node type may hang from" and the
 anti-hallucination product signals. Both the Create path
@@ -64,7 +64,7 @@ def canonical_parents(child_type: Optional[str]) -> set[str]:
 def parent_violation(child_type: Optional[str], parent_type: Optional[str]) -> Optional[str]:
     """Return a human-readable violation, or None when the parent is canonical.
 
-    `parent_type` may be falsy/"self" meaning "directly under persona" â€” accepted
+    `parent_type` may be falsy/"self" meaning "directly under persona" — accepted
     for the top-level types. Asset is lateral and accepts any parent.
     """
     child = _canon(child_type)
@@ -108,7 +108,7 @@ def edge_violation(
     return parent_violation(tgt, src)
 
 
-# â”€â”€ Anti-hallucination (shared by both prompts/paths) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Anti-hallucination (shared by both prompts/paths) ────────────────────────
 # Broad campaign/positioning terms that must NOT be auto-materialized as products.
 def contextual_parent_violation(
     child_type: Optional[str],
@@ -161,4 +161,3 @@ def has_explicit_product_signal(text: Optional[str]) -> bool:
     if re.search(r"\bprodutos?\s*(por|para)\s+(cada\s+)?(grupo|product_group)\b", raw):
         return True
     return any(marker in raw for marker in _PRODUCT_SIGNAL_MARKERS)
-

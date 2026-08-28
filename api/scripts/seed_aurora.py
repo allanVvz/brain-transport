@@ -1,4 +1,4 @@
-﻿"""Idempotently seed Aurora's portal account and canonical Graph JSON v2.
+"""Idempotently seed Aurora's portal account and canonical Graph JSON v2.
 
 The temporary password is generated only when the account does not exist and
 is written once to an operator-selected mode-0600 file. It is never printed.
@@ -25,7 +25,7 @@ PERSONA_CONFIG = {
         "conversion_stage": "fechado",
         "stage_labels": {"fechado": "Agendado"},
         "availability_policy": "always_confirm",
-        "schedule_notice": "Disponibilidade e horÃ¡rio sempre sujeitos Ã  confirmaÃ§Ã£o.",
+        "schedule_notice": "Disponibilidade e horário sempre sujeitos à confirmação.",
         "automation_mode": "ai_with_handoff",
         "responsible_team": "Equipe Aurora",
     }
@@ -37,13 +37,13 @@ def ensure_persona() -> dict:
     config = {**(existing.get("config") or {}), **PERSONA_CONFIG}
     supabase_client.upsert_persona({
         "slug": "aurora",
-        "name": "Aurora EstÃ©tica Automotiva",
+        "name": "Aurora Estética Automotiva",
         "tone": "premium, objetivo, cordial",
         "products": [
-            "AvaliaÃ§Ã£o inicial",
+            "Avaliação inicial",
             "Lavagem detalhada",
-            "HigienizaÃ§Ã£o interna",
-            "Polimento tÃ©cnico",
+            "Higienização interna",
+            "Polimento técnico",
         ],
         "config": config,
         "active": True,
@@ -157,4 +157,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import base64
 import hashlib
@@ -39,5 +39,4 @@ def decrypt_secret(value: str | None) -> str | None:
         return _fernet().decrypt(value.encode("utf-8")).decode("utf-8")
     except InvalidToken as exc:
         raise ValueError("Stored credential could not be decrypted.") from exc
-
 

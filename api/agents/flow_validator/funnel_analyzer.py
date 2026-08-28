@@ -1,4 +1,4 @@
-﻿from services import supabase_client
+from services import supabase_client
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -34,9 +34,9 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
             "persona_id": persona_id,
             "severity": severity,
             "category": "business",
-            "title": f"{total_stale} leads sem movimentaÃ§Ã£o hÃ¡ mais de 48h",
-            "description": f"DistribuiÃ§Ã£o por stage: {stage_summary}",
-            "recommendation": "Criar automaÃ§Ã£o de follow-up. Leads quentes esfriam apÃ³s 24h sem contato.",
+            "title": f"{total_stale} leads sem movimentação há mais de 48h",
+            "description": f"Distribuição por stage: {stage_summary}",
+            "recommendation": "Criar automação de follow-up. Leads quentes esfriam após 24h sem contato.",
             "affected_component": "lead funnel / follow-up",
             "score_impact": -8 if severity == "warning" else -15,
         })
@@ -49,13 +49,13 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
             "severity": "info",
             "category": "business",
             "title": f"{ai_disabled} lead(s) com ai_enabled=false",
-            "description": "Esses leads nÃ£o recebem respostas da IA.",
-            "recommendation": "Verificar se foram desativados intencionalmente ou Ã© bug do fluxo de criaÃ§Ã£o.",
+            "description": "Esses leads não recebem respostas da IA.",
+            "recommendation": "Verificar se foram desativados intencionalmente ou é bug do fluxo de criação.",
             "affected_component": "lead.ai_enabled flag",
             "score_impact": -3,
         })
 
-    # conversÃ£o de funil (ratio novo â†’ contatado)
+    # conversão de funil (ratio novo → contatado)
     by_stage: dict[str, int] = {}
     for lead in leads:
         s = lead.get("stage", "novo")
@@ -68,12 +68,11 @@ def analyze(persona_id: Optional[str] = None) -> list[dict]:
             "persona_id": persona_id,
             "severity": "warning",
             "category": "business",
-            "title": f"{novos/total:.0%} dos leads ainda em stage 'novo' â€” funil bloqueado no topo",
+            "title": f"{novos/total:.0%} dos leads ainda em stage 'novo' — funil bloqueado no topo",
             "description": f"{novos} de {total} leads nunca passaram da etapa inicial.",
-            "recommendation": "Revisar prompt do SDR e critÃ©rios de avanÃ§o de stage.",
+            "recommendation": "Revisar prompt do SDR e critérios de avanço de stage.",
             "affected_component": "SDR Agent / stage transition",
             "score_impact": -10,
         })
 
     return insights
-

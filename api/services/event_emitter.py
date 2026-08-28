@@ -1,5 +1,5 @@
-﻿"""
-Fire-and-forget event recorder. Never raises â€” swallows all exceptions
+"""
+Fire-and-forget event recorder. Never raises — swallows all exceptions
 so it never blocks the main request/worker flow.
 """
 from __future__ import annotations
@@ -59,4 +59,3 @@ def _update_pipeline_service(event_type: str) -> None:
         "last_activity": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     })
-

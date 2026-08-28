@@ -1,4 +1,4 @@
-﻿"""Strict contracts shared by Brain and persona n8n workflows."""
+"""Strict contracts shared by Brain and persona n8n workflows."""
 from __future__ import annotations
 
 from enum import StrEnum
@@ -283,4 +283,3 @@ class AgentResponse(StrictModel):
     # Optional because not every route (deterministic fallbacks, HUMAN
     # handoff) makes a paid model call.
     token_usage: dict[str, Any] | None = None
-

@@ -1,4 +1,4 @@
-﻿"""Rollback one persona to a previous GraphRAG publication/runtime binding."""
+"""Rollback one persona to a previous GraphRAG publication/runtime binding."""
 from __future__ import annotations
 
 import argparse
@@ -45,4 +45,3 @@ if __name__ == "__main__":
     print(json.dumps(rollback(
         args.persona_slug, args.target_version, runtime_version=args.runtime_version
     ), ensure_ascii=False, default=str))
-

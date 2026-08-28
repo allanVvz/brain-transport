@@ -1,4 +1,4 @@
-﻿"""Restricted deterministic auto-publication policy evaluator."""
+"""Restricted deterministic auto-publication policy evaluator."""
 from __future__ import annotations
 
 import hashlib
@@ -145,4 +145,3 @@ def apply(graph: GraphJson) -> tuple[GraphJson, list[dict[str, Any]]]:
         change["edge_id"] = edge.id
         change["source_approval_checksum"] = revision_checksum
     return result, changes
-

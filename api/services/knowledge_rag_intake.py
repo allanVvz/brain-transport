@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Database-first KB intake pipeline for RAG-ready knowledge.
 
@@ -37,7 +37,7 @@ CONTENT_LEVELS = {
 ALLOWED_CONTENT_TYPES = set(CONTENT_LEVELS)
 
 # Architectural rule (CLAUDE.md / README "KB vs RAG"):
-#   Grafo            = todo conhecimento (aprovado ou nÃ£o).
+#   Grafo            = todo conhecimento (aprovado ou não).
 #   KB Validada      = todo conhecimento aprovado (kb_entries).
 #   knowledge_rag    = SOMENTE FAQ aprovado (camada vetorial dos agentes).
 # Today only "faq" qualifies; widening to other content types later is a
@@ -111,7 +111,7 @@ def _extract_faq(text: str) -> tuple[Optional[str], Optional[str]]:
 def _extract_price(text: str) -> Optional[dict]:
     price_re = re.compile(
         r"R\$\s*(?P<amount>\d{1,6}(?:[.,]\d{2})?)"
-        r"(?:\s*(?:por|/)\s*(?P<unit>[A-Za-zÃ€-Ã¿0-9_-]+))?",
+        r"(?:\s*(?:por|/)\s*(?P<unit>[A-Za-zÀ-ÿ0-9_-]+))?",
         flags=re.IGNORECASE,
     )
     match = price_re.search(text or "")
@@ -749,4 +749,3 @@ def process_intake_plan(
         "rag_entries": rag_rows,
         "graph_nodes": list(node_by_slug.values()),
     }
-

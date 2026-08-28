@@ -1,4 +1,4 @@
-﻿"""Add qualification metadata to existing leads without changing their stages.
+"""Add qualification metadata to existing leads without changing their stages.
 
 Dry-run is the default. Use ``--apply`` only after the release is deployed and
 the reported counts have been audited.
@@ -105,4 +105,3 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=10000)
     args = parser.parse_args()
     print(run(apply=args.apply, limit=args.limit))
-

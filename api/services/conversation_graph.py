@@ -1,4 +1,4 @@
-﻿"""Place inbound WhatsApp media in the knowledge graph.
+"""Place inbound WhatsApp media in the knowledge graph.
 
 The shape is::
 
@@ -6,7 +6,7 @@ The shape is::
 
 A `conversation` node stands for one lead's thread. It hangs under the
 audience the lead belongs to, which hangs under the campaign that originated
-the outreach â€” so a photo a customer sends is traceable back to the campaign
+the outreach — so a photo a customer sends is traceable back to the campaign
 that prompted it, which is exactly the attribution the CRM needs.
 
 When no campaign can be attributed (an organic contact who messaged on their
@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from services import knowledge_graph, supabase_client
+from services import asset_graph_contract, knowledge_graph, supabase_client
 
 logger = logging.getLogger("services.conversation_graph")
 
@@ -85,7 +85,7 @@ def ensure_conversation_node(
         "source_table": "leads",
         "node_type": "conversation",
         "slug": f"conversa-{lead_id}",
-        "title": f"Conversa â€” {display}",
+        "title": f"Conversa — {display}",
         "summary": f"Thread de WhatsApp com {display}.",
         "tags": ["conversa", "whatsapp"],
         "metadata": {
@@ -124,7 +124,7 @@ def attach_inbound_asset(asset_id: str) -> dict[str, Any]:
     """Hang a received file under its lead's conversation node.
 
     Called by the media ingest worker after the bytes are stored, and only
-    then â€” the graph should describe files that actually exist.
+    then — the graph should describe files that actually exist.
     """
     asset = supabase_client.get_asset(asset_id)
     if not asset:
@@ -146,12 +146,7 @@ def attach_inbound_asset(asset_id: str) -> dict[str, Any]:
 
     metadata = asset.get("metadata") or {}
     descriptor = metadata.get("media") or {}
-    # Imported here rather than at module scope: the graph contract lives with
-    # the assets routes, and importing routes at import time would make
-    # services depend on the web layer.
-    from routes.assets import _ensure_asset_graph_contract
-
-    result = _ensure_asset_graph_contract(
+    result = asset_graph_contract.ensure_conversation_asset_graph(
         asset_id=str(asset_id),
         asset_row=asset,
         persona_id=str(persona_id),
@@ -164,7 +159,6 @@ def attach_inbound_asset(asset_id: str) -> dict[str, Any]:
         asset_type=asset.get("type"),
         # Deliberately None: a customer's file must never take a landing slot
         # or reach the public site.
-        asset_function=None,
         tags=["whatsapp", "recebido", str(descriptor.get("kind") or "midia")],
         created_from="whatsapp_media_ingest",
     )
@@ -178,4 +172,3 @@ def attach_inbound_asset(asset_id: str) -> dict[str, Any]:
         "gallery_node_id": (result.get("gallery_node") or {}).get("id"),
         "asset_gallery_edge_id": (result.get("gallery_edge") or {}).get("id"),
     }
-

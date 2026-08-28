@@ -1,4 +1,4 @@
-﻿"""BRA-75 MVP: Sofia edits graph_json via patch (end-to-end demo).
+"""BRA-75 MVP: Sofia edits graph_json via patch (end-to-end demo).
 
 Runs the full canonical loop for persona `allanvvz`:
 
@@ -276,4 +276,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

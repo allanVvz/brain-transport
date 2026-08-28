@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import json
@@ -1308,4 +1308,3 @@ def validate_approved_faq_publications(
         "failures": failures,
         "items": ok_items,
     }
-

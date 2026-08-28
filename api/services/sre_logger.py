@@ -1,7 +1,7 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
-SRE Logger â€” structured error/warn/info logging persisted in agent_logs.
-Errors appear at GET /logs/agents. Never raises â€” always falls back to stderr.
+SRE Logger — structured error/warn/info logging persisted in agent_logs.
+Errors appear at GET /logs/agents. Never raises — always falls back to stderr.
 """
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ def _write(
             },
         })
     except Exception:
-        # Queueing failed â€” stderr already has the record
+        # Queueing failed — stderr already has the record
         pass
 
 
@@ -81,4 +81,3 @@ def warn(component: str, message: str, exc: Optional[BaseException] = None) -> N
 
 def info(component: str, message: str) -> None:
     _write("INFO", component, message)
-

@@ -1,4 +1,4 @@
-﻿"""Switch an existing WhatsApp binding's (meta_cloud or evolution_baileys)
+"""Switch an existing WhatsApp binding's (meta_cloud or evolution_baileys)
 conversation routing to the deterministic pipeline (persona_slug-driven,
 reads the persona's own Graph JSON) instead of an n8n workflow webhook.
 
@@ -123,4 +123,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

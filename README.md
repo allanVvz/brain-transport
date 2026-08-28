@@ -1,7 +1,8 @@
 # brain-transport
 
-Webhooks Meta/Evolution, normalização, mensagens, buffer, mídia, dispatch e providers.
-Extraído de `brain-plataform` no SHA `b6ee5edc884e233cc0ff41798f4c19239e04fd88`.
+Webhooks Meta/Evolution, normalizacao, mensagens, buffer, midia, dispatch e providers.
+Extraido de `brain-plataform` no SHA `b6ee5edc884e233cc0ff41798f4c19239e04fd88`.
 
-Deploy não executa migrations. Readiness exige schema mínimo 130 e a credencial
-`BRAIN_TRANSPORT_DB_KEY`, pertencente à role `brain_transport`.
+Deploy nao executa migrations. Readiness exige schema minimo 130 e `BRAIN_DB_JWT`
+com claim `role=brain_transport`; `service_role` e recusada. Endpoints internos
+ficam sob `/internal/v1/*` e nao passam pelo gateway publico.

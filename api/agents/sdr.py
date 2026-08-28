@@ -1,4 +1,4 @@
-﻿import os
+import os
 from agents.base import BaseAgent
 
 
@@ -8,4 +8,3 @@ class SDRAgent(BaseAgent):
 
     def __init__(self):
         super().__init__(os.environ.get("SDR_AGENT_URL") or "")
-

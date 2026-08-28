@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 from datetime import datetime, timezone
@@ -281,4 +281,3 @@ def delete_knowledge_item_cascade(item_id: str) -> dict:
         and (evidence["knowledge_node_deleted_or_detached"] or not node)
     )
     return evidence
-
