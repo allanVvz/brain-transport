@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import ast
 import json
 import os
 from pathlib import Path
@@ -57,6 +58,24 @@ def test_transport_dispatch_uses_runtime_service_boundary():
 
 def test_legacy_database_module_is_transport_repository_alias():
     assert supabase_client is transport_repository
+
+
+def test_transport_repository_contains_only_the_reviewed_production_surface():
+    path = ROOT / "api/repositories/transport.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    functions = {
+        node.name
+        for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    assert len(functions) == 128
+    assert {
+        "claim_conversation_commit",
+        "enqueue_wa_validator_session",
+        "upsert_sofia_plan_session",
+        "delete_knowledge_item",
+        "create_audience",
+    }.isdisjoint(functions)
 
 
 def test_public_surface_excludes_other_domains():
