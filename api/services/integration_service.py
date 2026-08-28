@@ -860,7 +860,7 @@ def system_service_has_runtime_credentials(service: str) -> bool:
     if service == "n8n":
         return bool((os.environ.get("N8N_BASE_URL") or "").strip() and (os.environ.get("N8N_API_KEY") or "").strip())
     if service == "supabase":
-        return bool((os.environ.get("SUPABASE_URL") or "").strip() and (os.environ.get("SUPABASE_SERVICE_KEY") or "").strip())
+        return bool((os.environ.get("SUPABASE_URL") or "").strip() and (os.environ.get("BRAIN_DB_JWT") or "").strip())
     if service == "openai":
         return bool((os.environ.get("OPENAI_API_KEY") or "").strip())
     if service == "anthropic":

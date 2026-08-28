@@ -88,7 +88,7 @@ def _normalise_session_id(value: Optional[str]) -> str:
 
 
 def _supabase_plan_store_enabled() -> bool:
-    return bool((os.getenv("SUPABASE_URL") or "").strip() and (os.getenv("SUPABASE_SERVICE_KEY") or "").strip())
+    return bool((os.getenv("SUPABASE_URL") or "").strip() and (os.getenv("BRAIN_DB_JWT") or "").strip())
 
 
 def _load_supabase_state(session_id: str) -> Optional[dict[str, Any]]:
