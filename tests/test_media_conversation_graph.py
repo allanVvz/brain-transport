@@ -108,7 +108,6 @@ def test_organic_contact_gets_a_conversation_node_without_an_audience_edge(monke
 
 
 def test_inbound_asset_reports_both_graph_edges_and_never_gets_a_landing_slot(monkeypatch):
-    from routes import assets as assets_route
     from services import conversation_graph
 
     monkeypatch.setattr(conversation_graph.supabase_client, "get_asset", lambda _asset_id: {
@@ -123,7 +122,7 @@ def test_inbound_asset_reports_both_graph_edges_and_never_gets_a_landing_slot(mo
         lambda **_kwargs: {"id": "conversation-1", "node_type": "conversation"},
     )
     captured = {}
-    monkeypatch.setattr(assets_route, "_ensure_asset_graph_contract", lambda **kwargs: (
+    monkeypatch.setattr(conversation_graph.asset_graph_contract, "ensure_conversation_asset_graph", lambda **kwargs: (
         captured.update(kwargs) or {
             "asset_node": {"id": "asset-node-1"},
             "parent_edge": {"id": "conversation-asset-edge-1"},
@@ -145,7 +144,67 @@ def test_inbound_asset_reports_both_graph_edges_and_never_gets_a_landing_slot(mo
         "asset_gallery_edge_id": "asset-gallery-edge-1",
     }
     assert captured["parent_node"]["id"] == "conversation-1"
-    assert captured["asset_function"] is None
+    assert "asset_function" not in captured
+
+
+def test_inbound_asset_contract_persists_only_conversation_and_gallery_edges(monkeypatch):
+    from services import asset_graph_contract
+
+    captured_node = {}
+    captured_edges = []
+    captured_refs = {}
+    monkeypatch.setattr(
+        asset_graph_contract.supabase_client,
+        "get_knowledge_node_for_source",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(
+        asset_graph_contract.supabase_client,
+        "upsert_knowledge_node",
+        lambda payload: captured_node.update(payload) or {"id": "asset-node-1", **payload},
+    )
+    monkeypatch.setattr(
+        asset_graph_contract.supabase_client,
+        "upsert_knowledge_edge",
+        lambda source, target, relation, **kwargs: (
+            captured_edges.append((source, target, relation, kwargs))
+            or {"id": f"edge-{len(captured_edges)}"}
+        ),
+    )
+    monkeypatch.setattr(
+        asset_graph_contract.supabase_client,
+        "ensure_gallery_node",
+        lambda _persona_id: {"id": "gallery-1"},
+    )
+    monkeypatch.setattr(
+        asset_graph_contract.supabase_client,
+        "update_asset_graph_refs",
+        lambda asset_id, **kwargs: captured_refs.update({"asset_id": asset_id, **kwargs}) or {},
+    )
+
+    result = asset_graph_contract.ensure_conversation_asset_graph(
+        asset_id="asset-1",
+        asset_row={"id": "asset-1", "metadata": {"media": {"kind": "image"}}},
+        persona_id="persona-1",
+        parent_node={"id": "conversation-1", "node_type": "conversation", "slug": "conversa-42"},
+        storage_bucket="whatsapp-media",
+        storage_path="persona-1/42/foto.png",
+        title="foto.png",
+        summary="Midia recebida via WhatsApp",
+        slug_seed="foto.png",
+        asset_type="image",
+    )
+
+    assert "asset_function" not in captured_node["metadata"]
+    assert captured_node["metadata"]["parent_type"] == "conversation"
+    assert [(source, target, relation) for source, target, relation, _ in captured_edges] == [
+        ("conversation-1", "asset-node-1", "uses_asset"),
+        ("asset-node-1", "gallery-1", "gallery_asset"),
+    ]
+    assert captured_edges[0][3]["metadata"]["primary_tree"] is True
+    assert captured_edges[1][3]["metadata"]["primary_tree"] is False
+    assert captured_refs["parent_node_id"] == "conversation-1"
+    assert result["landing_edge"] is None
 
 
 # ── RAG gate ─────────────────────────────────────────────────────────────

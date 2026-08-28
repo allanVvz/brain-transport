@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from services import knowledge_graph, supabase_client
+from services import asset_graph_contract, knowledge_graph, supabase_client
 
 logger = logging.getLogger("services.conversation_graph")
 
@@ -146,12 +146,7 @@ def attach_inbound_asset(asset_id: str) -> dict[str, Any]:
 
     metadata = asset.get("metadata") or {}
     descriptor = metadata.get("media") or {}
-    # Imported here rather than at module scope: the graph contract lives with
-    # the assets routes, and importing routes at import time would make
-    # services depend on the web layer.
-    from routes.assets import _ensure_asset_graph_contract
-
-    result = _ensure_asset_graph_contract(
+    result = asset_graph_contract.ensure_conversation_asset_graph(
         asset_id=str(asset_id),
         asset_row=asset,
         persona_id=str(persona_id),
@@ -164,7 +159,6 @@ def attach_inbound_asset(asset_id: str) -> dict[str, Any]:
         asset_type=asset.get("type"),
         # Deliberately None: a customer's file must never take a landing slot
         # or reach the public site.
-        asset_function=None,
         tags=["whatsapp", "recebido", str(descriptor.get("kind") or "midia")],
         created_from="whatsapp_media_ingest",
     )
