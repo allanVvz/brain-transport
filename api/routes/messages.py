@@ -6,6 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
 from pydantic import BaseModel
+from brain_contracts import CanonicalInboundEnvelope
 
 from services import (
     auth_service,
@@ -70,6 +71,10 @@ class InternalValidatorMediaBody(BaseModel):
     mime: str
     content_base64: str
     idempotency_key: str
+
+
+def _validator_inbound_key(inbound_id: str) -> str:
+    return f"inbound:wa-validator:{inbound_id}"
 
 
 def _decode_message_cursor(value: str | None) -> tuple[str | None, int | None]:
@@ -265,6 +270,88 @@ def store_validator_media_internal(
         )
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
+
+
+@internal_router.post("/validator-inbound")
+def enqueue_validator_inbound_internal(
+    body: CanonicalInboundEnvelope,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    """Persist one inert synthetic inbound under transport ownership."""
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    if body.provider != "internal_validator":
+        raise HTTPException(422, "Provider invalido para validacao interna")
+    text = str(body.content.get("text") or "").strip()
+    if not text or body.message_type != "text":
+        raise HTTPException(422, "Inbound de validacao deve conter texto")
+    try:
+        lead_ref = int(body.lead_ref)
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(422, "lead_ref invalido") from exc
+    if lead_ref <= 0:
+        raise HTTPException(422, "lead_ref invalido")
+
+    inbound_id = body.inbound_id
+    return supabase_client.enqueue_whatsapp_envelope(
+        buffer={
+            "persona_id": str(body.persona_id),
+            "lead_ref": lead_ref,
+            "channel_binding_id": str(body.channel_binding_id),
+            "whatsapp_phone_number_id": None,
+            "external_message_id": inbound_id,
+            "direction": "inbound",
+            "payload": {"text": text, "sender": "wa-validator"},
+            # A direct validation turn is consumed synchronously by runtime.
+            "status": "waiting_human",
+            "batch_key": f"{body.persona_id}:{lead_ref}",
+            "idempotency_key": _validator_inbound_key(inbound_id),
+            "correlation_id": body.correlation_id,
+        },
+        message={
+            "lead_id": lead_ref,
+            "role": "user",
+            "content": text,
+            "direction": "inbound",
+            "status": "buffered",
+            "channel": "whatsapp",
+            "sender_id": "wa-validator",
+            "external_message_id": inbound_id,
+            "channel_binding_id": str(body.channel_binding_id),
+            "correlation_id": body.correlation_id,
+            "metadata": {
+                "provider": "wa-validator",
+                "contract_version": body.contract_version,
+                "persona_slug": body.persona_slug,
+            },
+            "created_at": body.received_at.isoformat(),
+        },
+    )
+
+
+@internal_router.post("/validator-inbound/{session_id}/{turn}/complete")
+def complete_validator_inbound_internal(
+    session_id: UUID,
+    turn: int,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    """Terminalize only the exact synthetic inbound created by the validator."""
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    if turn < 0:
+        raise HTTPException(422, "Turno invalido")
+    inbound_id = f"validator:{session_id}:{turn}"
+    row = supabase_client.get_whatsapp_buffer_by_idempotency(
+        _validator_inbound_key(inbound_id)
+    ) or {}
+    payload = row.get("payload") or {}
+    if (
+        not row.get("id")
+        or row.get("direction") != "inbound"
+        or row.get("external_message_id") != inbound_id
+        or payload.get("sender") != "wa-validator"
+    ):
+        raise HTTPException(404, "Inbound de validacao nao encontrado")
+    supabase_client.complete_whatsapp_buffer(str(row["id"]), "sent")
+    return {"ok": True, "buffer_id": str(row["id"]), "status": "sent"}
 
 
 def _resolve_scope_lead_refs(

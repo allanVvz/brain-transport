@@ -5,6 +5,8 @@ import ast
 import json
 import os
 from pathlib import Path
+from datetime import datetime, timezone
+from uuid import UUID
 
 import pytest
 
@@ -13,6 +15,7 @@ os.environ.setdefault("KNOWLEDGE_TAXONOMY_OFFLINE", "true")
 os.environ.setdefault("CURRENT_SCHEMA_VERSION", "131")
 
 import main
+from brain_contracts import CanonicalInboundEnvelope
 from repositories import transport as transport_repository
 from services import supabase_client
 from workers.runner import WORKERS
@@ -40,12 +43,83 @@ def test_service_identity_and_readiness_surface():
     assert "/internal/v1/transport/messages/prepare-outbound" in paths
     assert "/internal/v1/transport/messages/outbound" in paths
     assert "/internal/v1/transport/messages/validator-media" in paths
+    assert "/internal/v1/transport/messages/validator-inbound" in paths
+    assert "/internal/v1/transport/messages/validator-inbound/{session_id}/{turn}/complete" in paths
     assert "/internal/v1/transport/whatsapp/evolution/provision" in paths
     assert "/internal/v1/transport/whatsapp/evolution/action" in paths
     assert not any(path.startswith("/messaging") for path in paths)
     assert "/internal/v1/transport/whatsapp/outbound-result" in paths
     assert "/internal/v1/transport/messages/send" in paths
     assert "/internal/whatsapp/outbound-result" not in paths
+
+
+def test_validator_inbound_is_persisted_and_completed_by_transport(monkeypatch):
+    from routes import messages
+
+    calls: list[tuple[str, object]] = []
+    persona_id = UUID("11111111-1111-4111-8111-111111111111")
+    binding_id = UUID("22222222-2222-4222-8222-222222222222")
+    session_id = UUID("33333333-3333-4333-8333-333333333333")
+    inbound_id = f"validator:{session_id}:2"
+    monkeypatch.setattr(
+        messages.internal_auth,
+        "authorize_webhook_token",
+        lambda token: calls.append(("auth", token)),
+    )
+    monkeypatch.setattr(
+        messages.supabase_client,
+        "enqueue_whatsapp_envelope",
+        lambda **payload: calls.append(("enqueue", payload)) or {
+            "buffer_id": "44444444-4444-4444-8444-444444444444",
+            "deduplicated": False,
+        },
+    )
+    body = CanonicalInboundEnvelope(
+        inbound_id=inbound_id,
+        correlation_id=inbound_id,
+        persona_id=persona_id,
+        persona_slug="fixture-persona",
+        lead_ref="42",
+        channel_binding_id=binding_id,
+        provider="internal_validator",
+        received_at=datetime.now(timezone.utc),
+        message_type="text",
+        content={"text": "mensagem sintetica"},
+    )
+
+    created = messages.enqueue_validator_inbound_internal(body, "internal-token")
+    persisted = calls[1][1]
+    assert created["deduplicated"] is False
+    assert persisted["buffer"]["direction"] == "inbound"
+    assert persisted["buffer"]["status"] == "waiting_human"
+    assert persisted["buffer"]["idempotency_key"] == f"inbound:wa-validator:{inbound_id}"
+    assert persisted["message"]["metadata"]["provider"] == "wa-validator"
+
+    row = {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "direction": "inbound",
+        "external_message_id": inbound_id,
+        "payload": {"sender": "wa-validator"},
+    }
+    monkeypatch.setattr(
+        messages.supabase_client,
+        "get_whatsapp_buffer_by_idempotency",
+        lambda key: calls.append(("lookup", key)) or row,
+    )
+    monkeypatch.setattr(
+        messages.supabase_client,
+        "complete_whatsapp_buffer",
+        lambda buffer_id, status: calls.append(("complete", (buffer_id, status))),
+    )
+
+    completed = messages.complete_validator_inbound_internal(
+        session_id, 2, "internal-token"
+    )
+
+    assert completed["status"] == "sent"
+    assert calls[-1] == (
+        "complete", ("44444444-4444-4444-8444-444444444444", "sent")
+    )
 
 
 def test_worker_group_is_domain_scoped():
