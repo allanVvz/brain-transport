@@ -16,6 +16,7 @@ os.environ.setdefault("CURRENT_SCHEMA_VERSION", "131")
 
 import main
 from brain_contracts import CanonicalInboundEnvelope
+from middleware.auth import is_public_path
 from repositories import transport as transport_repository
 from services import supabase_client
 from workers.runner import WORKERS
@@ -51,6 +52,20 @@ def test_service_identity_and_readiness_surface():
     assert "/internal/v1/transport/whatsapp/outbound-result" in paths
     assert "/internal/v1/transport/messages/send" in paths
     assert "/internal/whatsapp/outbound-result" not in paths
+
+
+def test_internal_transport_commands_reach_route_token_authentication():
+    for path in (
+        "/internal/v1/transport/messages/campaign-outbound",
+        "/internal/v1/transport/messages/prepare-outbound",
+        "/internal/v1/transport/messages/outbound",
+        "/internal/v1/transport/messages/validator-media",
+        "/internal/v1/transport/messages/validator-inbound",
+        "/internal/v1/transport/messages/validator-inbound/"
+        "33333333-3333-4333-8333-333333333333/2/complete",
+    ):
+        assert is_public_path(path)
+    assert not is_public_path("/internal/v1/transport/messages/admin")
 
 
 def test_validator_inbound_is_persisted_and_completed_by_transport(monkeypatch):
