@@ -100,6 +100,12 @@ def is_public_path(path: str) -> bool:
         path,
     ):
         return True
+    if re.fullmatch(
+        r"/internal/v1/transport/messages/inbound/"
+        r"[0-9a-fA-F-]{36}/technical-failure",
+        path,
+    ):
+        return True
     # Only the public site contract is anonymous. Nested admin endpoints under
     # the same prefix must still pass through session/persona authorization.
     if path.startswith("/api/menu/"):

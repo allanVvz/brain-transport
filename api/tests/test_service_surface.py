@@ -46,6 +46,7 @@ def test_service_identity_and_readiness_surface():
     assert "/internal/v1/transport/messages/validator-media" in paths
     assert "/internal/v1/transport/messages/validator-inbound" in paths
     assert "/internal/v1/transport/messages/validator-inbound/{session_id}/{turn}/complete" in paths
+    assert "/internal/v1/transport/messages/inbound/{buffer_id}/technical-failure" in paths
     assert "/internal/v1/transport/whatsapp/evolution/provision" in paths
     assert "/internal/v1/transport/whatsapp/evolution/action" in paths
     assert not any(path.startswith("/messaging") for path in paths)
@@ -63,6 +64,8 @@ def test_internal_transport_commands_reach_route_token_authentication():
         "/internal/v1/transport/messages/validator-inbound",
         "/internal/v1/transport/messages/validator-inbound/"
         "33333333-3333-4333-8333-333333333333/2/complete",
+        "/internal/v1/transport/messages/inbound/"
+        "44444444-4444-4444-8444-444444444444/technical-failure",
     ):
         assert is_public_path(path)
     assert not is_public_path("/internal/v1/transport/messages/admin")
@@ -137,6 +140,38 @@ def test_validator_inbound_is_persisted_and_completed_by_transport(monkeypatch):
     )
 
 
+def test_runtime_technical_failure_is_terminalized_by_transport(monkeypatch):
+    from routes import messages
+
+    calls = []
+    buffer_id = UUID("44444444-4444-4444-8444-444444444444")
+    monkeypatch.setattr(messages.internal_auth, "authorize_webhook_token", calls.append)
+    monkeypatch.setattr(
+        messages.supabase_client,
+        "get_whatsapp_buffer",
+        lambda value: {"id": value, "direction": "inbound", "lead_ref": 42},
+    )
+    monkeypatch.setattr(
+        messages.supabase_client,
+        "complete_whatsapp_buffer",
+        lambda value, status, error=None: calls.append((value, status, error)),
+    )
+
+    result = messages.quarantine_inbound_technical_failure_internal(
+        buffer_id,
+        messages.InternalTechnicalFailureBody(
+            lead_ref=42, error="graph context unavailable"
+        ),
+        "internal-token",
+    )
+
+    assert result["status"] == "dead_letter"
+    assert calls == [
+        "internal-token",
+        (str(buffer_id), "dead_letter", "graph context unavailable"),
+    ]
+
+
 def test_worker_group_is_domain_scoped():
     assert set(WORKERS) == {
         "health_check",
@@ -164,7 +199,7 @@ def test_transport_repository_contains_only_the_reviewed_production_surface():
         for node in tree.body
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
     }
-    assert len(functions) == 72
+    assert len(functions) == 73
     assert {
         "claim_conversation_commit",
         "enqueue_wa_validator_session",

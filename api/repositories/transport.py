@@ -1057,6 +1057,18 @@ def get_whatsapp_buffer_by_idempotency(idempotency_key: str) -> Optional[dict]:
     )
 
 
+def get_whatsapp_buffer(buffer_id: str) -> Optional[dict]:
+    if not buffer_id:
+        return None
+    return _one(
+        get_client()
+        .table("lead_buffer")
+        .select("id,direction,status,lead_ref")
+        .eq("id", buffer_id)
+        .maybe_single()
+    )
+
+
 def normalize_whatsapp_text(text: str | None) -> str:
     """Collapse whitespace and case so near-identical retries compare equal."""
     import re
