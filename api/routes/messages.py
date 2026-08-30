@@ -73,6 +73,11 @@ class InternalValidatorMediaBody(BaseModel):
     idempotency_key: str
 
 
+class InternalTechnicalFailureBody(BaseModel):
+    lead_ref: int
+    error: str
+
+
 def _validator_inbound_key(inbound_id: str) -> str:
     return f"inbound:wa-validator:{inbound_id}"
 
@@ -352,6 +357,30 @@ def complete_validator_inbound_internal(
         raise HTTPException(404, "Inbound de validacao nao encontrado")
     supabase_client.complete_whatsapp_buffer(str(row["id"]), "sent")
     return {"ok": True, "buffer_id": str(row["id"]), "status": "sent"}
+
+
+@internal_router.post("/inbound/{buffer_id}/technical-failure")
+def quarantine_inbound_technical_failure_internal(
+    buffer_id: UUID,
+    body: InternalTechnicalFailureBody,
+    x_webhook_token: str | None = Header(None, alias="X-Webhook-Token"),
+) -> dict:
+    """Terminalize one failed inbound under transport data ownership."""
+    internal_auth.authorize_webhook_token(x_webhook_token)
+    row = supabase_client.get_whatsapp_buffer(str(buffer_id)) or {}
+    if (
+        not row.get("id")
+        or row.get("direction") != "inbound"
+        or int(row.get("lead_ref") or 0) != body.lead_ref
+    ):
+        raise HTTPException(404, "Inbound nao encontrado")
+    error = body.error.strip()
+    if not error:
+        raise HTTPException(422, "Motivo tecnico vazio")
+    supabase_client.complete_whatsapp_buffer(
+        str(buffer_id), "dead_letter", error=error[:1000]
+    )
+    return {"ok": True, "buffer_id": str(buffer_id), "status": "dead_letter"}
 
 
 def _resolve_scope_lead_refs(
