@@ -20,6 +20,11 @@ PUBLIC_EXACT_PATHS = {
     "/webhooks/whatsapp/status",
     "/internal/v1/transport/whatsapp/outbound-result",
     "/internal/v1/transport/messages/send",
+    "/internal/v1/transport/messages/campaign-outbound",
+    "/internal/v1/transport/messages/prepare-outbound",
+    "/internal/v1/transport/messages/outbound",
+    "/internal/v1/transport/messages/validator-media",
+    "/internal/v1/transport/messages/validator-inbound",
 }
 
 ADMIN_TOKEN_HEADER = "x-ai-brain-admin-token"
@@ -88,6 +93,12 @@ def is_public_path(path: str) -> bool:
     if path.startswith("/webhooks/evolution/"):
         return True
     if path in PUBLIC_EXACT_PATHS:
+        return True
+    if re.fullmatch(
+        r"/internal/v1/transport/messages/validator-inbound/"
+        r"[0-9a-fA-F-]{36}/[0-9]+/complete",
+        path,
+    ):
         return True
     # Only the public site contract is anonymous. Nested admin endpoints under
     # the same prefix must still pass through session/persona authorization.
